@@ -31,12 +31,12 @@
             panel1 = new Panel();
             lblTitle = new Label();
             panel2 = new Panel();
+            lblFilePath = new Label();
             progressBar = new ProgressBar();
             lblStatus = new Label();
             btnExit = new Button();
             btnVisualize = new Button();
             label2 = new Label();
-            txtFilePath = new TextBox();
             btnBrowse = new Button();
             panel1.SuspendLayout();
             panel2.SuspendLayout();
@@ -60,7 +60,7 @@
             lblTitle.ForeColor = Color.White;
             lblTitle.Location = new Point(223, 30);
             lblTitle.Name = "lblTitle";
-            lblTitle.Size = new Size(355, 45);
+            lblTitle.Size = new Size(374, 45);
             lblTitle.TabIndex = 0;
             lblTitle.Text = "MAP Routing Visualizer";
             lblTitle.TextAlign = ContentAlignment.MiddleCenter;
@@ -68,18 +68,28 @@
             // panel2
             // 
             panel2.BackColor = Color.WhiteSmoke;
+            panel2.Controls.Add(lblFilePath);
             panel2.Controls.Add(progressBar);
             panel2.Controls.Add(lblStatus);
             panel2.Controls.Add(btnExit);
             panel2.Controls.Add(btnVisualize);
             panel2.Controls.Add(label2);
-            panel2.Controls.Add(txtFilePath);
             panel2.Controls.Add(btnBrowse);
             panel2.Dock = DockStyle.Fill;
             panel2.Location = new Point(0, 100);
             panel2.Name = "panel2";
-            panel2.Size = new Size(800, 350);
+            panel2.Size = new Size(800, 361);
             panel2.TabIndex = 1;
+            panel2.Paint += panel2_Paint;
+            // 
+            // lblFilePath
+            // 
+            lblFilePath.AutoSize = true;
+            lblFilePath.Location = new Point(223, 80);
+            lblFilePath.Name = "lblFilePath";
+            lblFilePath.Size = new Size(355, 27);
+            lblFilePath.TabIndex = 7;
+            lblFilePath.Text = "Choose a file";
             // 
             // progressBar
             // 
@@ -95,7 +105,7 @@
             lblStatus.ForeColor = Color.Navy;
             lblStatus.Location = new Point(223, 230);
             lblStatus.Name = "lblStatus";
-            lblStatus.Size = new Size(93, 15);
+            lblStatus.Size = new Size(98, 15);
             lblStatus.TabIndex = 5;
             lblStatus.Text = "Processing map...";
             // 
@@ -135,19 +145,9 @@
             label2.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point);
             label2.Location = new Point(223, 45);
             label2.Name = "label2";
-            label2.Size = new Size(168, 21);
+            label2.Size = new Size(151, 21);
             label2.TabIndex = 2;
             label2.Text = "Select Map File (.txt):";
-            // 
-            // txtFilePath
-            // 
-            txtFilePath.BorderStyle = BorderStyle.FixedSingle;
-            txtFilePath.Font = new Font("Segoe UI", 11F, FontStyle.Regular, GraphicsUnit.Point);
-            txtFilePath.Location = new Point(223, 80);
-            txtFilePath.Name = "txtFilePath";
-            txtFilePath.ReadOnly = true;
-            txtFilePath.Size = new Size(355, 27);
-            txtFilePath.TabIndex = 1;
             // 
             // btnBrowse
             // 
@@ -168,7 +168,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(800, 450);
+            ClientSize = new Size(800, 461);
             Controls.Add(panel2);
             Controls.Add(panel1);
             MinimumSize = new Size(800, 500);
@@ -189,11 +189,11 @@
         private Label lblTitle;
         private Panel panel2;
         private Button btnBrowse;
-        private TextBox txtFilePath;
         private Label label2;
         private Button btnVisualize;
         private Button btnExit;
         private Label lblStatus;
         private ProgressBar progressBar;
+        private Label lblFilePath;
     }
 }

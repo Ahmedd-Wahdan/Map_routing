@@ -8,7 +8,7 @@ using MAP_routing.model;
 
 namespace MAP_routing.view
 {
-    internal class graph_renderrer
+    internal class graph_renderer
     {
         private readonly Graph _graph;
         private readonly Panel _panel;
@@ -20,7 +20,7 @@ namespace MAP_routing.view
 
         private PointF _viewCenter = new PointF(0, 0);
 
-        public graph_renderrer(Graph graph, Panel panel)
+        public graph_renderer(Graph graph, Panel panel)
         {
             _graph = graph;
             _panel = panel;

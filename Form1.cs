@@ -30,7 +30,7 @@ namespace MAP_routing
                 if (openFileDialog.ShowDialog() == DialogResult.OK)
                 {
                     selectedFilePath = openFileDialog.FileName;
-                    txtFilePath.Text = selectedFilePath;
+                    lblFilePath.Text = "Selected file: \"" + selectedFilePath + "\"";
                     btnVisualize.Enabled = true;
                 }
             }
@@ -115,8 +115,8 @@ namespace MAP_routing
             int leftMargin = centerX - (controlWidth / 2);
 
             // Reposition controls
-            txtFilePath.Location = new Point(leftMargin, txtFilePath.Location.Y);
-            txtFilePath.Width = controlWidth;
+            lblFilePath.Location = new Point(leftMargin, lblFilePath.Location.Y);
+            lblFilePath.Width = controlWidth;
 
             btnBrowse.Location = new Point(leftMargin, btnBrowse.Location.Y);
             btnBrowse.Width = controlWidth;
@@ -139,6 +139,11 @@ namespace MAP_routing
 
             // Center the title in the header panel
             lblTitle.Left = (panel1.Width - lblTitle.Width) / 2;
+        }
+
+        private void panel2_Paint(object sender, PaintEventArgs e)
+        {
+
         }
     }
 }
