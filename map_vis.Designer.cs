@@ -1,14 +1,14 @@
 ﻿namespace MAP_routing
 {
-    partial class Form1
+    partial class map_vis
     {
         /// <summary>
-        ///  Required designer variable.
+        /// Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
 
         /// <summary>
-        ///  Clean up any resources being used.
+        /// Clean up any resources being used.
         /// </summary>
         /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
@@ -23,37 +23,35 @@
         #region Windows Form Designer generated code
 
         /// <summary>
-        ///  Required method for Designer support - do not modify
-        ///  the contents of this method with the code editor.
+        /// Required method for Designer support - do not modify
+        /// the contents of this method with the code editor.
         /// </summary>
         private void InitializeComponent()
         {
-            button1 = new Button();
+            panel1 = new Panel();
             SuspendLayout();
             // 
-            // button1
+            // panel1
             // 
-            button1.Location = new Point(411, 324);
-            button1.Name = "button1";
-            button1.Size = new Size(192, 59);
-            button1.TabIndex = 0;
-            button1.Text = "VISUALIZE";
-            button1.UseVisualStyleBackColor = true;
-            button1.Click += button1_Click;
+            panel1.Location = new Point(12, 12);
+            panel1.Name = "panel1";
+            panel1.Size = new Size(1035, 682);
+            panel1.TabIndex = 0;
             // 
-            // Form1
+            // map_vis
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1111, 728);
-            Controls.Add(button1);
-            Name = "Form1";
-            Text = "Form1";
+            ClientSize = new Size(1059, 706);
+            Controls.Add(panel1);
+            Name = "map_vis";
+            Text = "MAP VISUALIZATION";
+            Load += this.map_vis_Load_1;
             ResumeLayout(false);
         }
 
         #endregion
 
-        private Button button1;
+        private Panel panel1;
     }
 }
