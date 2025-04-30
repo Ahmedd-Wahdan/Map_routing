@@ -33,6 +33,9 @@
             // 
             // panel1
             // 
+            panel1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            panel1.BackColor = Color.White;
+            panel1.BorderStyle = BorderStyle.FixedSingle;
             panel1.Location = new Point(12, 12);
             panel1.Name = "panel1";
             panel1.Size = new Size(1035, 682);
@@ -43,11 +46,14 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
+            BackColor = Color.WhiteSmoke;
             ClientSize = new Size(1059, 706);
             Controls.Add(panel1);
+            MinimumSize = new Size(800, 600);
             Name = "map_vis";
             Text = "MAP VISUALIZATION";
             Load += map_vis_Load_1;
+            Resize += map_vis_Resize;
             ResumeLayout(false);
         }
 

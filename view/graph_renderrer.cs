@@ -18,7 +18,6 @@ namespace MAP_routing.view
         private bool _isPanning = false;
         private Point _lastMousePosition;
 
-        // World coordinates of the viewport center
         private PointF _viewCenter = new PointF(0, 0);
 
         public graph_renderrer(Graph graph, Panel panel)
@@ -26,7 +25,6 @@ namespace MAP_routing.view
             _graph = graph;
             _panel = panel;
 
-            // Initialize by centering the graph
             CenterGraph();
             HookEvents();
         }
@@ -39,7 +37,6 @@ namespace MAP_routing.view
         {
             if (_graph.Nodes.Count == 0) return;
 
-            // Calculate the center of the graph
             float minX = _graph.Nodes.Values.Min(n => n.X);
             float maxX = _graph.Nodes.Values.Max(n => n.X);
             float minY = _graph.Nodes.Values.Min(n => n.Y);
@@ -48,7 +45,6 @@ namespace MAP_routing.view
             float centerX = (minX + maxX) / 2;
             float centerY = (minY + maxY) / 2;
 
-            // Calculate the necessary scale to fit the graph
             float graphWidth = maxX - minX;
             float graphHeight = maxY - minY;
 
@@ -60,7 +56,6 @@ namespace MAP_routing.view
                 _scale = Math.Max(0.01f, Math.Min(10f, _scale)); // Clamp scale
             }
 
-            // Update view center and recalculate offset
             _viewCenter = new PointF(centerX, centerY);
             UpdateOffsetFromViewCenter();
         }
@@ -69,7 +64,6 @@ namespace MAP_routing.view
 
         private void UpdateOffsetFromViewCenter()
         {
-            // Calculate offset from view center and scale
             _offset.X = _panel.Width / 2f - _viewCenter.X * _scale;
             _offset.Y = _panel.Height / 2f + _viewCenter.Y * _scale;
         }
@@ -96,7 +90,6 @@ namespace MAP_routing.view
             g.SmoothingMode = SmoothingMode.AntiAlias;
             g.Clear(Color.White);
 
-            // Apply transformations
             g.TranslateTransform(_offset.X, _offset.Y);
             g.ScaleTransform(_scale, -_scale);
 
@@ -161,7 +154,6 @@ namespace MAP_routing.view
 
         #region Coordinate Conversions
 
-        // Convert screen coordinates to world coordinates
         private PointF ScreenToWorld(Point screenPoint)
         {
             return new PointF(
@@ -176,23 +168,18 @@ namespace MAP_routing.view
 
         private void OnMouseWheel(object sender, MouseEventArgs e)
         {
-            // Convert mouse position to world coordinates before scaling
             PointF worldPoint = ScreenToWorld(e.Location);
 
-            // Calculate new scale
             float oldScale = _scale;
             float zoomFactor = e.Delta > 0 ? 1.1f : 0.9f;
             _scale *= zoomFactor;
             _scale = Math.Max(0.01f, Math.Min(10f, _scale));
 
-            // Calculate how much the world point moved due to scaling
             float scaleRatio = _scale / oldScale;
 
-            // Update view center to keep the mouse point fixed during zoom
             _viewCenter.X = worldPoint.X + (_viewCenter.X - worldPoint.X) / scaleRatio;
             _viewCenter.Y = worldPoint.Y + (_viewCenter.Y - worldPoint.Y) / scaleRatio;
 
-            // Update offset based on new view center and scale
             UpdateOffsetFromViewCenter();
 
             Redraw();
@@ -212,19 +199,15 @@ namespace MAP_routing.view
         {
             if (_isPanning)
             {
-                // Calculate the delta in screen space
                 float dx = e.X - _lastMousePosition.X;
                 float dy = e.Y - _lastMousePosition.Y;
 
-                // Convert screen delta to world delta
                 float worldDx = dx / _scale;
                 float worldDy = -dy / _scale;
 
-                // Update the view center
                 _viewCenter.X -= worldDx;
                 _viewCenter.Y -= worldDy;
 
-                // Update the offset based on the new view center
                 UpdateOffsetFromViewCenter();
 
                 _lastMousePosition = e.Location;
