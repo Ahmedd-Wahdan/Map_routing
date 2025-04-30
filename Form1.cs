@@ -13,9 +13,8 @@ namespace MAP_routing
         {
             Graph graph = new Graph();
 
-            graph.ReadFromFile("C:\\Users\\ahmed\\Downloads\\OLMap.txt");
+            graph.ReadFromFile("C:\\Users\\2hmed\\Desktop\\OLMap.txt");
 
-            // Show the form
             map_vis mapForm = new map_vis(graph);
             mapForm.Show();
         }

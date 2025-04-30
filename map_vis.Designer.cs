@@ -37,6 +37,7 @@
             panel1.Name = "panel1";
             panel1.Size = new Size(1035, 682);
             panel1.TabIndex = 0;
+            panel1.Paint += panel1_Paint;
             // 
             // map_vis
             // 
@@ -46,7 +47,7 @@
             Controls.Add(panel1);
             Name = "map_vis";
             Text = "MAP VISUALIZATION";
-            Load += this.map_vis_Load_1;
+            Load += map_vis_Load_1;
             ResumeLayout(false);
         }
 

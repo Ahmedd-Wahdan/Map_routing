@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Linq;
 using System.Windows.Forms;
 using MAP_routing.model;
 
@@ -16,11 +18,16 @@ namespace MAP_routing.view
         private bool _isPanning = false;
         private Point _lastMousePosition;
 
+        // World coordinates of the viewport center
+        private PointF _viewCenter = new PointF(0, 0);
+
         public graph_renderrer(Graph graph, Panel panel)
         {
             _graph = graph;
             _panel = panel;
 
+            // Initialize by centering the graph
+            CenterGraph();
             HookEvents();
         }
 
@@ -28,13 +35,43 @@ namespace MAP_routing.view
 
         public void Redraw() => _panel.Invalidate();
 
+        public void CenterGraph()
+        {
+            if (_graph.Nodes.Count == 0) return;
+
+            // Calculate the center of the graph
+            float minX = _graph.Nodes.Values.Min(n => n.X);
+            float maxX = _graph.Nodes.Values.Max(n => n.X);
+            float minY = _graph.Nodes.Values.Min(n => n.Y);
+            float maxY = _graph.Nodes.Values.Max(n => n.Y);
+
+            float centerX = (minX + maxX) / 2;
+            float centerY = (minY + maxY) / 2;
+
+            // Calculate the necessary scale to fit the graph
+            float graphWidth = maxX - minX;
+            float graphHeight = maxY - minY;
+
+            if (graphWidth > 0 && graphHeight > 0)
+            {
+                float scaleX = (_panel.Width * 0.9f) / graphWidth;
+                float scaleY = (_panel.Height * 0.9f) / graphHeight;
+                _scale = Math.Min(scaleX, scaleY);
+                _scale = Math.Max(0.01f, Math.Min(10f, _scale)); // Clamp scale
+            }
+
+            // Update view center and recalculate offset
+            _viewCenter = new PointF(centerX, centerY);
+            UpdateOffsetFromViewCenter();
+        }
+
         #endregion
 
-        private void ClampOffset()
+        private void UpdateOffsetFromViewCenter()
         {
-            // Example: limit pan to within -1000 to +1000 range
-            _offset.X = Math.Max(-1000, Math.Min(1000, _offset.X));
-            _offset.Y = Math.Max(-1000, Math.Min(1000, _offset.Y));
+            // Calculate offset from view center and scale
+            _offset.X = _panel.Width / 2f - _viewCenter.X * _scale;
+            _offset.Y = _panel.Height / 2f + _viewCenter.Y * _scale;
         }
 
         #region Event Hooks
@@ -56,10 +93,11 @@ namespace MAP_routing.view
         private void OnPaint(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
-            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            g.SmoothingMode = SmoothingMode.AntiAlias;
             g.Clear(Color.White);
-            // Set transform: bottom-left origin and scale
-            g.TranslateTransform(_offset.X, _panel.Height - _offset.Y);
+
+            // Apply transformations
+            g.TranslateTransform(_offset.X, _offset.Y);
             g.ScaleTransform(_scale, -_scale);
 
             DrawBoundingBox(g);
@@ -72,14 +110,11 @@ namespace MAP_routing.view
 
         private void DrawGraph(Graphics g)
         {
-
-            foreach (var node in _graph.Nodes.Values)
-                DrawNode(g, node);
-
             foreach (var edge in _graph.Edges)
                 DrawEdge(g, edge);
 
-
+            foreach (var node in _graph.Nodes.Values)
+                DrawNode(g, node);
         }
 
         public void DrawNode(Graphics g, Node node)
@@ -93,11 +128,9 @@ namespace MAP_routing.view
 
             using var brush = new SolidBrush(node.IsPath ? Color.Red : node.Color);
             using var pen = new Pen(Color.Black, 1);
-            using var font = new Font("Arial", 8);
 
             g.FillEllipse(brush, rect);
             g.DrawEllipse(pen, rect);
-            //g.DrawString(node.Id.ToString(), font, Brushes.Black, node.X + radius, node.Y + radius);
         }
 
         public void DrawEdge(Graphics g, Edge edge)
@@ -110,10 +143,6 @@ namespace MAP_routing.view
             g.DrawLine(pen, from.X, from.Y, to.X, to.Y);
         }
 
-        #endregion
-
-
-
         private void DrawBoundingBox(Graphics g)
         {
             if (_graph.Nodes.Count == 0) return;
@@ -124,42 +153,50 @@ namespace MAP_routing.view
             float maxY = _graph.Nodes.Values.Max(n => n.Y);
 
             var rect = new RectangleF(minX, minY, maxX - minX, maxY - minY);
-            using var pen = new Pen(Color.LightGray, 5f) { DashStyle = System.Drawing.Drawing2D.DashStyle.Dash };
+            using var pen = new Pen(Color.LightGray, 5f / _scale) { DashStyle = DashStyle.Dash };
             g.DrawRectangle(pen, rect.X, rect.Y, rect.Width, rect.Height);
         }
 
+        #endregion
+
+        #region Coordinate Conversions
+
+        // Convert screen coordinates to world coordinates
+        private PointF ScreenToWorld(Point screenPoint)
+        {
+            return new PointF(
+                (screenPoint.X - _offset.X) / _scale,
+                -((screenPoint.Y - _offset.Y) / _scale)
+            );
+        }
+
+        #endregion
 
         #region Mouse Interaction
 
-    private void OnMouseWheel(object sender, MouseEventArgs e)
-    {
-        float oldScale = _scale;
+        private void OnMouseWheel(object sender, MouseEventArgs e)
+        {
+            // Convert mouse position to world coordinates before scaling
+            PointF worldPoint = ScreenToWorld(e.Location);
 
-        // Define the zoom factor for scroll up/down
-        float zoomFactor = (e.Delta > 0) ? 1.1f : 0.9f;
-    
-        // Apply the zoom factor
-        _scale *= zoomFactor;
+            // Calculate new scale
+            float oldScale = _scale;
+            float zoomFactor = e.Delta > 0 ? 1.1f : 0.9f;
+            _scale *= zoomFactor;
+            _scale = Math.Max(0.01f, Math.Min(10f, _scale));
 
-        // Allow more zoom-out by lowering the minimum scale (e.g., 0.01 instead of 0.1)
-        _scale = Math.Max(0.01f, Math.Min(10f, _scale));  // You can adjust 0.01f as needed
+            // Calculate how much the world point moved due to scaling
+            float scaleRatio = _scale / oldScale;
 
-        // Convert screen (panel) coordinates to world coordinates before zoom
-        float mouseX = (e.X - _offset.X) / oldScale;
-        float mouseY = (_panel.Height - e.Y - _offset.Y) / oldScale;
+            // Update view center to keep the mouse point fixed during zoom
+            _viewCenter.X = worldPoint.X + (_viewCenter.X - worldPoint.X) / scaleRatio;
+            _viewCenter.Y = worldPoint.Y + (_viewCenter.Y - worldPoint.Y) / scaleRatio;
 
-        // Update the offset to keep the point under the mouse fixed in world coordinates
-        _offset.X = e.X - mouseX * _scale;
-        _offset.Y = _panel.Height - e.Y - mouseY * _scale;
+            // Update offset based on new view center and scale
+            UpdateOffsetFromViewCenter();
 
-        // Ensure the offset is clamped within the allowed bounds
-        ClampOffset();
-
-        // Redraw the panel to reflect the new zoom and offset
-        Redraw();
-    }
-
-
+            Redraw();
+        }
 
         private void OnMouseDown(object sender, MouseEventArgs e)
         {
@@ -167,6 +204,7 @@ namespace MAP_routing.view
             {
                 _isPanning = true;
                 _lastMousePosition = e.Location;
+                _panel.Cursor = Cursors.Hand;
             }
         }
 
@@ -174,13 +212,21 @@ namespace MAP_routing.view
         {
             if (_isPanning)
             {
+                // Calculate the delta in screen space
                 float dx = e.X - _lastMousePosition.X;
                 float dy = e.Y - _lastMousePosition.Y;
 
-                _offset.X += dx;
-                _offset.Y -= dy; // Y is flipped
+                // Convert screen delta to world delta
+                float worldDx = dx / _scale;
+                float worldDy = -dy / _scale;
 
-                ClampOffset();
+                // Update the view center
+                _viewCenter.X -= worldDx;
+                _viewCenter.Y -= worldDy;
+
+                // Update the offset based on the new view center
+                UpdateOffsetFromViewCenter();
+
                 _lastMousePosition = e.Location;
                 Redraw();
             }
@@ -188,7 +234,11 @@ namespace MAP_routing.view
 
         private void OnMouseUp(object sender, MouseEventArgs e)
         {
-            _isPanning = false;
+            if (_isPanning)
+            {
+                _isPanning = false;
+                _panel.Cursor = Cursors.Default;
+            }
         }
 
         #endregion

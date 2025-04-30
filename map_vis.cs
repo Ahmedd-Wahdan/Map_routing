@@ -1,13 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using MAP_routing.view;
+﻿using MAP_routing.view;
 using MAP_routing.model;
 namespace MAP_routing
 {
@@ -35,8 +26,13 @@ namespace MAP_routing
 
         private void map_vis_Load_1(object sender, EventArgs e)
         {
-           
+
             _graph_renderrer.Redraw();
+        }
+
+        private void panel1_Paint(object sender, PaintEventArgs e)
+        {
+
         }
     }
 
