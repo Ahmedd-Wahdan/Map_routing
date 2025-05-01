@@ -103,11 +103,28 @@ namespace MAP_routing.view
 
         private void DrawGraph(Graphics g)
         {
+            RectangleF visibleBounds = GetVisibleWorldBounds();
+
             foreach (var edge in _graph.Edges)
-                DrawEdge(g, edge);
+            {
+                if (_graph.Nodes.TryGetValue(edge.FromId, out var from) &&
+                    _graph.Nodes.TryGetValue(edge.ToId, out var to))
+                {
+                    if (visibleBounds.Contains(from.X, from.Y) || visibleBounds.Contains(to.X, to.Y))
+                    {
+                        DrawEdge(g, edge);
+                    }
+                }
+            }
 
             foreach (var node in _graph.Nodes.Values)
-                DrawNode(g, node);
+            {
+                if (visibleBounds.Contains(node.X, node.Y))
+                {
+                    DrawNode(g, node);
+                }
+            }
+
         }
 
         public void DrawNode(Graphics g, Node node)
@@ -151,6 +168,23 @@ namespace MAP_routing.view
         }
 
         #endregion
+
+        private RectangleF GetVisibleWorldBounds()
+        {
+            float left = (0 - _offset.X) / _scale;
+            float top = -((0 - _offset.Y) / _scale);
+            float right = (_panel.Width - _offset.X) / _scale;
+            float bottom = -((_panel.Height - _offset.Y) / _scale);
+
+            return new RectangleF(
+                Math.Min(left, right),
+                Math.Min(top, bottom),
+                Math.Abs(right - left),
+                Math.Abs(bottom - top)
+            );
+        }
+
+
 
         #region Coordinate Conversions
 

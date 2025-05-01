@@ -49,16 +49,16 @@
             panel1.Dock = DockStyle.Top;
             panel1.Location = new Point(0, 0);
             panel1.Name = "panel1";
-            panel1.Size = new Size(800, 100);
+            panel1.Size = new Size(784, 100);
             panel1.TabIndex = 0;
             // 
             // lblTitle
             // 
             lblTitle.Anchor = AnchorStyles.None;
             lblTitle.AutoSize = true;
-            lblTitle.Font = new Font("Segoe UI", 24F, FontStyle.Bold, GraphicsUnit.Point);
+            lblTitle.Font = new Font("Segoe UI", 24F, FontStyle.Bold);
             lblTitle.ForeColor = Color.White;
-            lblTitle.Location = new Point(223, 30);
+            lblTitle.Location = new Point(215, 30);
             lblTitle.Name = "lblTitle";
             lblTitle.Size = new Size(374, 45);
             lblTitle.TabIndex = 0;
@@ -78,7 +78,7 @@
             panel2.Dock = DockStyle.Fill;
             panel2.Location = new Point(0, 100);
             panel2.Name = "panel2";
-            panel2.Size = new Size(800, 361);
+            panel2.Size = new Size(784, 361);
             panel2.TabIndex = 1;
             panel2.Paint += panel2_Paint;
             // 
@@ -87,7 +87,7 @@
             lblFilePath.AutoSize = true;
             lblFilePath.Location = new Point(223, 80);
             lblFilePath.Name = "lblFilePath";
-            lblFilePath.Size = new Size(355, 27);
+            lblFilePath.Size = new Size(75, 15);
             lblFilePath.TabIndex = 7;
             lblFilePath.Text = "Choose a file";
             // 
@@ -101,7 +101,7 @@
             // lblStatus
             // 
             lblStatus.AutoSize = true;
-            lblStatus.Font = new Font("Segoe UI", 9F, FontStyle.Italic, GraphicsUnit.Point);
+            lblStatus.Font = new Font("Segoe UI", 9F, FontStyle.Italic);
             lblStatus.ForeColor = Color.Navy;
             lblStatus.Location = new Point(223, 230);
             lblStatus.Name = "lblStatus";
@@ -114,7 +114,7 @@
             btnExit.BackColor = Color.IndianRed;
             btnExit.FlatAppearance.BorderSize = 0;
             btnExit.FlatStyle = FlatStyle.Flat;
-            btnExit.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point);
+            btnExit.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
             btnExit.ForeColor = Color.White;
             btnExit.Location = new Point(387, 295);
             btnExit.Name = "btnExit";
@@ -129,7 +129,7 @@
             btnVisualize.BackColor = Color.RoyalBlue;
             btnVisualize.FlatAppearance.BorderSize = 0;
             btnVisualize.FlatStyle = FlatStyle.Flat;
-            btnVisualize.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point);
+            btnVisualize.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
             btnVisualize.ForeColor = Color.White;
             btnVisualize.Location = new Point(223, 295);
             btnVisualize.Name = "btnVisualize";
@@ -142,7 +142,7 @@
             // label2
             // 
             label2.AutoSize = true;
-            label2.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            label2.Font = new Font("Segoe UI", 12F);
             label2.Location = new Point(223, 45);
             label2.Name = "label2";
             label2.Size = new Size(151, 21);
@@ -154,7 +154,7 @@
             btnBrowse.BackColor = Color.LightSteelBlue;
             btnBrowse.FlatAppearance.BorderSize = 0;
             btnBrowse.FlatStyle = FlatStyle.Flat;
-            btnBrowse.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point);
+            btnBrowse.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold);
             btnBrowse.ForeColor = Color.Navy;
             btnBrowse.Location = new Point(223, 120);
             btnBrowse.Name = "btnBrowse";
@@ -168,7 +168,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(800, 461);
+            ClientSize = new Size(784, 461);
             Controls.Add(panel2);
             Controls.Add(panel1);
             MinimumSize = new Size(800, 500);
