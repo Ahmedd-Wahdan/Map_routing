@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace MAP_routing.model
+﻿namespace MAP_routing.model
 {
+
     public class Node
     {
         public int Id { get; set; }
@@ -140,4 +135,8 @@ namespace MAP_routing.model
             return Edges.FirstOrDefault(e => e.FromId == fromId && e.ToId == toId);
         }
     }
+ }
 }
+ 
+
+
