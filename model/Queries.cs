@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace MAP_routing.model
+﻿namespace MAP_routing.model
 {
     public class Query
     {
@@ -13,7 +6,7 @@ namespace MAP_routing.model
         public float StartY { get; set; }
         public float EndX { get; set; }
         public float EndY { get; set; }
-        public int QueryId { get; set; }
+        public int Rmeteres { get; set; }
 
         public Query(float startX, float startY, float endX, float endY, int queryId)
         {
@@ -21,7 +14,7 @@ namespace MAP_routing.model
             StartY = startY;
             EndX = endX;
             EndY = endY;
-            QueryId = queryId;
+            Rmeteres = queryId;
         }
     }
 
@@ -66,10 +59,10 @@ namespace MAP_routing.model
                     !float.TryParse(parts[1], out float startY) ||
                     !float.TryParse(parts[2], out float endX) ||
                     !float.TryParse(parts[3], out float endY) ||
-                    !int.TryParse(parts[4], out int queryId))
+                    !int.TryParse(parts[4], out int Rmeter))
                     throw new FormatException($"Invalid query data at line {lineIndex}");
 
-                QueryList.Add(new Query(startX, startY, endX, endY, queryId));
+                QueryList.Add(new Query(startX, startY, endX, endY, Rmeter));
             }
         }
 
@@ -107,7 +100,7 @@ namespace MAP_routing.model
             return nearestNodeId;
         }
 
-        private static float CalculateEuclideanDistance(float x1, float y1, float x2, float y2)
+        public static float CalculateEuclideanDistance(float x1, float y1, float x2, float y2)
         {
             return (float)Math.Sqrt(Math.Pow(x2 - x1, 2) + Math.Pow(y2 - y1, 2));
         }

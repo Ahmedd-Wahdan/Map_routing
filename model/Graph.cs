@@ -8,6 +8,8 @@
         public float Y { get; set; }
         public Color Color { get; set; } = Color.Blue;
         public bool IsPath { get; set; } = false;
+        public List<Edge> Neighbors { get; set; } = new List<Edge>();
+
 
         public Node(int id, float x, float y)
         {
@@ -26,6 +28,8 @@
         public Color Color { get; set; } = Color.Gray;
         public bool IsPath { get; set; } = false;
         public float Distance => Length;
+        public double TimeMin => (Length / Speed) * 60.0;
+
 
         public Edge(int fromId, int toId, float length, int speed)
         {
@@ -60,7 +64,6 @@
             Nodes.Clear();
             Edges.Clear();
         }
-
 
 
         public void ReadFromFile(string filePath)
@@ -135,8 +138,8 @@
             return Edges.FirstOrDefault(e => e.FromId == fromId && e.ToId == toId);
         }
     }
- }
 }
- 
+
+
 
 

@@ -38,12 +38,24 @@
             lblQueriesFile = new Label();
             btnBrowseQueries = new Button();
             lblQuerySectionTitle = new Label();
+            lblDistance = new Label();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
             splitContainer1.Panel2.SuspendLayout();
             splitContainer1.SuspendLayout();
             pnlQueryControls.SuspendLayout();
             SuspendLayout();
+            // 
+            // panel1
+            // 
+            panel1.BackColor = Color.White;
+            panel1.BorderStyle = BorderStyle.FixedSingle;
+            panel1.Dock = DockStyle.Fill;
+            panel1.Location = new Point(0, 0);
+            panel1.Name = "panel1";
+            panel1.Size = new Size(750, 682);
+            panel1.TabIndex = 0;
+            panel1.Paint += panel1_Paint;
             // 
             // splitContainer1
             // 
@@ -64,21 +76,11 @@
             splitContainer1.SplitterDistance = 750;
             splitContainer1.TabIndex = 1;
             // 
-            // panel1
-            // 
-            panel1.BackColor = Color.White;
-            panel1.BorderStyle = BorderStyle.FixedSingle;
-            panel1.Dock = DockStyle.Fill;
-            panel1.Location = new Point(0, 0);
-            panel1.Name = "panel1";
-            panel1.Size = new Size(750, 682);
-            panel1.TabIndex = 0;
-            panel1.Paint += panel1_Paint;
-            // 
             // pnlQueryControls
             // 
             pnlQueryControls.BackColor = Color.AliceBlue;
             pnlQueryControls.BorderStyle = BorderStyle.FixedSingle;
+            pnlQueryControls.Controls.Add(lblDistance);
             pnlQueryControls.Controls.Add(lblQueryInfo);
             pnlQueryControls.Controls.Add(lblCurrentQuery);
             pnlQueryControls.Controls.Add(btnSaveAllResults);
@@ -97,11 +99,10 @@
             // 
             // lblQueryInfo
             // 
-            lblQueryInfo.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-            | System.Windows.Forms.AnchorStyles.Right)));
+            lblQueryInfo.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             lblQueryInfo.BackColor = Color.White;
             lblQueryInfo.BorderStyle = BorderStyle.FixedSingle;
-            lblQueryInfo.Font = new Font("Segoe UI", 9F);
+            lblQueryInfo.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
             lblQueryInfo.Location = new Point(16, 272);
             lblQueryInfo.Name = "lblQueryInfo";
             lblQueryInfo.Padding = new Padding(5);
@@ -112,22 +113,21 @@
             // lblCurrentQuery
             // 
             lblCurrentQuery.AutoSize = true;
-            lblCurrentQuery.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold);
+            lblCurrentQuery.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point);
             lblCurrentQuery.ForeColor = Color.Navy;
             lblCurrentQuery.Location = new Point(16, 249);
             lblCurrentQuery.Name = "lblCurrentQuery";
-            lblCurrentQuery.Size = new Size(106, 17);
+            lblCurrentQuery.Size = new Size(109, 17);
             lblCurrentQuery.TabIndex = 9;
             lblCurrentQuery.Text = "Current Query: -";
             // 
             // btnSaveAllResults
             // 
-            btnSaveAllResults.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
-            | System.Windows.Forms.AnchorStyles.Right)));
+            btnSaveAllResults.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             btnSaveAllResults.BackColor = Color.DarkGreen;
             btnSaveAllResults.FlatAppearance.BorderSize = 0;
             btnSaveAllResults.FlatStyle = FlatStyle.Flat;
-            btnSaveAllResults.Font = new Font("Segoe UI", 11.25F, FontStyle.Bold);
+            btnSaveAllResults.Font = new Font("Segoe UI", 11.25F, FontStyle.Bold, GraphicsUnit.Point);
             btnSaveAllResults.ForeColor = Color.White;
             btnSaveAllResults.Location = new Point(16, 597);
             btnSaveAllResults.Name = "btnSaveAllResults";
@@ -139,12 +139,11 @@
             // 
             // btnRunAllQueries
             // 
-            btnRunAllQueries.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
-            | System.Windows.Forms.AnchorStyles.Right)));
+            btnRunAllQueries.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             btnRunAllQueries.BackColor = Color.DarkBlue;
             btnRunAllQueries.FlatAppearance.BorderSize = 0;
             btnRunAllQueries.FlatStyle = FlatStyle.Flat;
-            btnRunAllQueries.Font = new Font("Segoe UI", 11.25F, FontStyle.Bold);
+            btnRunAllQueries.Font = new Font("Segoe UI", 11.25F, FontStyle.Bold, GraphicsUnit.Point);
             btnRunAllQueries.ForeColor = Color.White;
             btnRunAllQueries.Location = new Point(16, 543);
             btnRunAllQueries.Name = "btnRunAllQueries";
@@ -159,7 +158,7 @@
             btnNextQuery.BackColor = Color.RoyalBlue;
             btnNextQuery.FlatAppearance.BorderSize = 0;
             btnNextQuery.FlatStyle = FlatStyle.Flat;
-            btnNextQuery.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold);
+            btnNextQuery.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point);
             btnNextQuery.ForeColor = Color.White;
             btnNextQuery.Location = new Point(148, 207);
             btnNextQuery.Name = "btnNextQuery";
@@ -174,7 +173,7 @@
             btnPrevQuery.BackColor = Color.RoyalBlue;
             btnPrevQuery.FlatAppearance.BorderSize = 0;
             btnPrevQuery.FlatStyle = FlatStyle.Flat;
-            btnPrevQuery.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold);
+            btnPrevQuery.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point);
             btnPrevQuery.ForeColor = Color.White;
             btnPrevQuery.Location = new Point(16, 207);
             btnPrevQuery.Name = "btnPrevQuery";
@@ -187,31 +186,30 @@
             // lblQueryCount
             // 
             lblQueryCount.AutoSize = true;
-            lblQueryCount.Font = new Font("Segoe UI", 9.75F);
+            lblQueryCount.Font = new Font("Segoe UI", 9.75F, FontStyle.Regular, GraphicsUnit.Point);
             lblQueryCount.Location = new Point(16, 170);
             lblQueryCount.Name = "lblQueryCount";
-            lblQueryCount.Size = new Size(95, 17);
+            lblQueryCount.Size = new Size(98, 17);
             lblQueryCount.TabIndex = 3;
             lblQueryCount.Text = "Queries found: ";
             // 
             // lblQueriesFile
             // 
             lblQueriesFile.AutoSize = true;
-            lblQueriesFile.Font = new Font("Segoe UI", 9F);
+            lblQueriesFile.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
             lblQueriesFile.Location = new Point(16, 122);
             lblQueriesFile.Name = "lblQueriesFile";
-            lblQueriesFile.Size = new Size(96, 15);
+            lblQueriesFile.Size = new Size(97, 15);
             lblQueriesFile.TabIndex = 2;
             lblQueriesFile.Text = "No file selected...";
             // 
             // btnBrowseQueries
             // 
-            btnBrowseQueries.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-            | System.Windows.Forms.AnchorStyles.Right)));
+            btnBrowseQueries.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             btnBrowseQueries.BackColor = Color.LightSteelBlue;
             btnBrowseQueries.FlatAppearance.BorderSize = 0;
             btnBrowseQueries.FlatStyle = FlatStyle.Flat;
-            btnBrowseQueries.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold);
+            btnBrowseQueries.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point);
             btnBrowseQueries.ForeColor = Color.Navy;
             btnBrowseQueries.Location = new Point(16, 78);
             btnBrowseQueries.Name = "btnBrowseQueries";
@@ -224,13 +222,21 @@
             // lblQuerySectionTitle
             // 
             lblQuerySectionTitle.AutoSize = true;
-            lblQuerySectionTitle.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold);
+            lblQuerySectionTitle.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point);
             lblQuerySectionTitle.ForeColor = Color.MidnightBlue;
             lblQuerySectionTitle.Location = new Point(16, 24);
             lblQuerySectionTitle.Name = "lblQuerySectionTitle";
-            lblQuerySectionTitle.Size = new Size(171, 25);
+            lblQuerySectionTitle.Size = new Size(170, 25);
             lblQuerySectionTitle.TabIndex = 0;
             lblQuerySectionTitle.Text = "Query Navigation";
+            // 
+            // lblDistance
+            // 
+            lblDistance.AutoSize = true;
+            lblDistance.Location = new Point(16, 411);
+            lblDistance.Name = "lblDistance";
+            lblDistance.Size = new Size(0, 15);
+            lblDistance.TabIndex = 11;
             // 
             // map_vis
             // 
@@ -266,5 +272,6 @@
         private Button btnSaveAllResults;
         private Label lblCurrentQuery;
         private Label lblQueryInfo;
+        private Label lblDistance;
     }
 }

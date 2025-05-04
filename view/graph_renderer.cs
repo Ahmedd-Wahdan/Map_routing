@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Linq;
-using System.Windows.Forms;
+﻿using System.Drawing.Drawing2D;
 using MAP_routing.model;
 
 namespace MAP_routing.view
@@ -76,6 +71,27 @@ namespace MAP_routing.view
             _highlightedNodes.Clear();
         }
 
+        public void HighlightPath(Algorithm.PathResult paths, Color color)
+        {
+            if (paths == null || paths.Path.Count < 2)
+                return;
+
+            _highlightedPath.Clear();
+
+            for (int i = 0; i < paths.Path.Count - 1; i++)
+            {
+                Edge edge = _graph.GetEdge(paths.Path[i], paths.Path[i + 1]);
+                if (edge != null)
+                {
+                    Edge highlightedEdge = new Edge(edge.FromId, edge.ToId, edge.Length, edge.Speed)
+                    {
+                        Color = Color.Blue,
+                        IsPath = true
+                    };
+                    _highlightedPath.Add(highlightedEdge);
+                }
+            }
+        }
         public void ClearHighlightedPath()
         {
             _highlightedPath.Clear();
@@ -171,7 +187,7 @@ namespace MAP_routing.view
 
                 if (_graph.Nodes.TryGetValue(nodeId, out var node))
                 {
-                    float radius = 5f;
+                    float radius = 10f;
 
                     var rect = new RectangleF(
                         node.X - radius, node.Y - radius,
