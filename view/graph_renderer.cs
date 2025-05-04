@@ -20,6 +20,9 @@ namespace MAP_routing.view
 
         private PointF _viewCenter = new PointF(0, 0);
 
+        private Dictionary<int, Color> _highlightedNodes = new Dictionary<int, Color>();
+        private List<Edge> _highlightedPath = new List<Edge>();
+
         public graph_renderer(Graph graph, Panel panel)
         {
             _graph = graph;
@@ -53,11 +56,29 @@ namespace MAP_routing.view
                 float scaleX = (_panel.Width * 0.9f) / graphWidth;
                 float scaleY = (_panel.Height * 0.9f) / graphHeight;
                 _scale = Math.Min(scaleX, scaleY);
-                _scale = Math.Max(0.01f, Math.Min(10f, _scale)); // Clamp scale
+                _scale = Math.Max(0.01f, Math.Min(10f, _scale));
             }
 
             _viewCenter = new PointF(centerX, centerY);
             UpdateOffsetFromViewCenter();
+        }
+
+        public void HighlightNode(Node node, Color color)
+        {
+            if (node != null)
+            {
+                _highlightedNodes[node.Id] = color;
+            }
+        }
+
+        public void ClearHighlightedNodes()
+        {
+            _highlightedNodes.Clear();
+        }
+
+        public void ClearHighlightedPath()
+        {
+            _highlightedPath.Clear();
         }
 
         #endregion
@@ -95,6 +116,8 @@ namespace MAP_routing.view
 
             DrawBoundingBox(g);
             DrawGraph(g);
+            DrawHighlightedPath(g);
+            DrawHighlightedNodes(g);
         }
 
         #endregion
@@ -124,11 +147,51 @@ namespace MAP_routing.view
                     DrawNode(g, node);
                 }
             }
+        }
 
+        private void DrawHighlightedPath(Graphics g)
+        {
+            foreach (var edge in _highlightedPath)
+            {
+                if (_graph.Nodes.TryGetValue(edge.FromId, out var from) &&
+                    _graph.Nodes.TryGetValue(edge.ToId, out var to))
+                {
+                    using var pen = new Pen(edge.Color, 3f);
+                    g.DrawLine(pen, from.X, from.Y, to.X, to.Y);
+                }
+            }
+        }
+
+        private void DrawHighlightedNodes(Graphics g)
+        {
+            foreach (var kvp in _highlightedNodes)
+            {
+                int nodeId = kvp.Key;
+                Color highlightColor = kvp.Value;
+
+                if (_graph.Nodes.TryGetValue(nodeId, out var node))
+                {
+                    float radius = 5f;
+
+                    var rect = new RectangleF(
+                        node.X - radius, node.Y - radius,
+                        radius * 2, radius * 2
+                    );
+
+                    using var brush = new SolidBrush(highlightColor);
+                    using var pen = new Pen(Color.Black, 1.5f);
+
+                    g.FillEllipse(brush, rect);
+                    g.DrawEllipse(pen, rect);
+                }
+            }
         }
 
         public void DrawNode(Graphics g, Node node)
         {
+            if (_highlightedNodes.ContainsKey(node.Id))
+                return;
+
             float radius = 3f;
 
             var rect = new RectangleF(
@@ -145,6 +208,9 @@ namespace MAP_routing.view
 
         public void DrawEdge(Graphics g, Edge edge)
         {
+            if (_highlightedPath.Any(e => e.FromId == edge.FromId && e.ToId == edge.ToId))
+                return;
+
             if (!_graph.Nodes.TryGetValue(edge.FromId, out var from) ||
                 !_graph.Nodes.TryGetValue(edge.ToId, out var to))
                 return;
@@ -183,8 +249,6 @@ namespace MAP_routing.view
                 Math.Abs(bottom - top)
             );
         }
-
-
 
         #region Coordinate Conversions
 

@@ -30,6 +30,7 @@ namespace MAP_routing.model
         public int Speed { get; set; }
         public Color Color { get; set; } = Color.Gray;
         public bool IsPath { get; set; } = false;
+        public float Distance => Length;
 
         public Edge(int fromId, int toId, float length, int speed)
         {
@@ -69,10 +70,8 @@ namespace MAP_routing.model
 
         public void ReadFromFile(string filePath)
         {
-            // Clear existing graph data
             Clear();
 
-            // Read all lines from the file
             string[] lines;
             try
             {
@@ -85,11 +84,9 @@ namespace MAP_routing.model
 
             int lineIndex = 0;
 
-            // Read number of intersections (N)
             if (!int.TryParse(lines[lineIndex++].Trim(), out int n))
                 throw new FormatException("Invalid number of intersections");
 
-            // Read N intersections
             for (int i = 0; i < n; i++)
             {
                 if (lineIndex >= lines.Length)
@@ -107,14 +104,12 @@ namespace MAP_routing.model
                 AddNode(id, x, y);
             }
 
-            // Read number of roads (M)
             if (lineIndex >= lines.Length)
                 throw new FormatException("Unexpected end of file while reading number of roads");
 
             if (!int.TryParse(lines[lineIndex++].Trim(), out int m))
                 throw new FormatException("Invalid number of roads");
 
-            // Read M roads
             for (int i = 0; i < m; i++)
             {
                 if (lineIndex >= lines.Length)
@@ -130,10 +125,19 @@ namespace MAP_routing.model
                     !int.TryParse(parts[3], out int speed))
                     throw new FormatException($"Invalid road data at line {lineIndex}");
 
-                // Add bidirectional edges with length and speed
                 AddEdge(fromId, toId, length, speed);
                 AddEdge(toId, fromId, length, speed);
             }
+        }
+
+        public Dictionary<int, Node> GetNodes()
+        {
+            return Nodes;
+        }
+
+        public Edge GetEdge(int fromId, int toId)
+        {
+            return Edges.FirstOrDefault(e => e.FromId == fromId && e.ToId == toId);
         }
     }
 }
