@@ -9,22 +9,22 @@ namespace MAP_routing.model
 {
     public class Priority_Queue<T, Priority> where Priority : IComparable<Priority>
     {
-        public List<(T Node, Priority weight)> Yaya_Elements = new List<(T, Priority)>();
+        public List<(T Node, Priority weight)> Elements = new List<(T, Priority)>();
 
         public void Enqueue(T item,Priority weight) 
         {
-            Yaya_Elements.Add((item, weight));
+            Elements.Add((item, weight));
 
-            int index = Yaya_Elements.Count - 1;
+            int index = Elements.Count - 1;
             while (index > 0)
             {
                 int Parent = (index - 1) / 2;
-                if (Yaya_Elements[Parent].weight.CompareTo(Yaya_Elements[index].weight) <= 0) { break; }
+                if (Elements[Parent].weight.CompareTo(Elements[index].weight) <= 0) { break; }
                 else 
                 { 
-                    var temp = Yaya_Elements[Parent];
-                    Yaya_Elements[Parent] = Yaya_Elements[index];
-                    Yaya_Elements[index] = temp;
+                    var temp = Elements[Parent];
+                    Elements[Parent] = Elements[index];
+                    Elements[index] = temp;
                     index = Parent;
                 }
             }
@@ -32,12 +32,12 @@ namespace MAP_routing.model
 
         public T Dequeue()
         {
-            if(Yaya_Elements.Count == 0 )
+            if(Elements.Count == 0 )
                 throw new Exception("Queue is empty");
 
-            var result = Yaya_Elements[0].Node;
-            Yaya_Elements[0] = Yaya_Elements[Yaya_Elements.Count - 1];
-            Yaya_Elements.RemoveAt(Yaya_Elements.Count - 1);
+            var result = Elements[0].Node;
+            Elements[0] = Elements[Elements.Count - 1];
+            Elements.RemoveAt(Elements.Count - 1);
 
             int index = 0;
 
@@ -46,15 +46,15 @@ namespace MAP_routing.model
                 int Right_Child = 2 * index + 2;
                 int Left_Child = 2 * index + 1;
                 int Minimum = index;
-                if (Right_Child < Yaya_Elements.Count && Yaya_Elements[Right_Child].weight.CompareTo(Yaya_Elements[Minimum].weight) < 0)
+                if (Right_Child < Elements.Count && Elements[Right_Child].weight.CompareTo(Elements[Minimum].weight) < 0)
                     Minimum = Right_Child;
-                if (Left_Child < Yaya_Elements.Count && Yaya_Elements[Left_Child].weight.CompareTo(Yaya_Elements[Minimum].weight) < 0)
+                if (Left_Child < Elements.Count && Elements[Left_Child].weight.CompareTo(Elements[Minimum].weight) < 0)
                     Minimum = Left_Child;
                 if (Minimum == index)
                     break;
-                var temp = Yaya_Elements[index];
-                Yaya_Elements[index] = Yaya_Elements[Minimum];
-                Yaya_Elements[Minimum] = temp;
+                var temp = Elements[index];
+                Elements[index] = Elements[Minimum];
+                Elements[Minimum] = temp;
                 index = Minimum;
             }
 

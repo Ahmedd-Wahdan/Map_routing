@@ -28,15 +28,13 @@
             panel1 = new Panel();
             splitContainer1 = new SplitContainer();
             pnlQueryControls = new Panel();
+            lblPathMetrics = new Label();
             lblQueryInfo = new Label();
             lblCurrentQuery = new Label();
             btnSaveAllResults = new Button();
-            btnRunAllQueries = new Button();
             btnNextQuery = new Button();
             btnPrevQuery = new Button();
             lblQueryCount = new Label();
-            lblQueriesFile = new Label();
-            btnBrowseQueries = new Button();
             lblQuerySectionTitle = new Label();
             lblDistance = new Label();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
@@ -80,16 +78,14 @@
             // 
             pnlQueryControls.BackColor = Color.AliceBlue;
             pnlQueryControls.BorderStyle = BorderStyle.FixedSingle;
+            pnlQueryControls.Controls.Add(lblPathMetrics);
             pnlQueryControls.Controls.Add(lblDistance);
             pnlQueryControls.Controls.Add(lblQueryInfo);
             pnlQueryControls.Controls.Add(lblCurrentQuery);
             pnlQueryControls.Controls.Add(btnSaveAllResults);
-            pnlQueryControls.Controls.Add(btnRunAllQueries);
             pnlQueryControls.Controls.Add(btnNextQuery);
             pnlQueryControls.Controls.Add(btnPrevQuery);
             pnlQueryControls.Controls.Add(lblQueryCount);
-            pnlQueryControls.Controls.Add(lblQueriesFile);
-            pnlQueryControls.Controls.Add(btnBrowseQueries);
             pnlQueryControls.Controls.Add(lblQuerySectionTitle);
             pnlQueryControls.Dock = DockStyle.Fill;
             pnlQueryControls.Location = new Point(0, 0);
@@ -97,13 +93,25 @@
             pnlQueryControls.Size = new Size(281, 682);
             pnlQueryControls.TabIndex = 0;
             // 
+            // lblPathMetrics
+            // 
+            lblPathMetrics.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            lblPathMetrics.BackColor = Color.White;
+            lblPathMetrics.BorderStyle = BorderStyle.FixedSingle;
+            lblPathMetrics.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
+            lblPathMetrics.Location = new Point(16, 446);
+            lblPathMetrics.Name = "lblPathMetrics";
+            lblPathMetrics.Padding = new Padding(5);
+            lblPathMetrics.Size = new Size(247, 80);
+            lblPathMetrics.TabIndex = 12;
+            // 
             // lblQueryInfo
             // 
             lblQueryInfo.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             lblQueryInfo.BackColor = Color.White;
             lblQueryInfo.BorderStyle = BorderStyle.FixedSingle;
             lblQueryInfo.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
-            lblQueryInfo.Location = new Point(16, 272);
+            lblQueryInfo.Location = new Point(16, 172);
             lblQueryInfo.Name = "lblQueryInfo";
             lblQueryInfo.Padding = new Padding(5);
             lblQueryInfo.Size = new Size(247, 120);
@@ -115,7 +123,7 @@
             lblCurrentQuery.AutoSize = true;
             lblCurrentQuery.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point);
             lblCurrentQuery.ForeColor = Color.Navy;
-            lblCurrentQuery.Location = new Point(16, 249);
+            lblCurrentQuery.Location = new Point(16, 142);
             lblCurrentQuery.Name = "lblCurrentQuery";
             lblCurrentQuery.Size = new Size(109, 17);
             lblCurrentQuery.TabIndex = 9;
@@ -137,22 +145,6 @@
             btnSaveAllResults.UseVisualStyleBackColor = false;
             btnSaveAllResults.Click += btnSaveAllResults_Click;
             // 
-            // btnRunAllQueries
-            // 
-            btnRunAllQueries.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            btnRunAllQueries.BackColor = Color.DarkBlue;
-            btnRunAllQueries.FlatAppearance.BorderSize = 0;
-            btnRunAllQueries.FlatStyle = FlatStyle.Flat;
-            btnRunAllQueries.Font = new Font("Segoe UI", 11.25F, FontStyle.Bold, GraphicsUnit.Point);
-            btnRunAllQueries.ForeColor = Color.White;
-            btnRunAllQueries.Location = new Point(16, 543);
-            btnRunAllQueries.Name = "btnRunAllQueries";
-            btnRunAllQueries.Size = new Size(247, 38);
-            btnRunAllQueries.TabIndex = 7;
-            btnRunAllQueries.Text = "Run All Queries";
-            btnRunAllQueries.UseVisualStyleBackColor = false;
-            btnRunAllQueries.Click += btnRunAllQueries_Click;
-            // 
             // btnNextQuery
             // 
             btnNextQuery.BackColor = Color.RoyalBlue;
@@ -160,7 +152,7 @@
             btnNextQuery.FlatStyle = FlatStyle.Flat;
             btnNextQuery.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point);
             btnNextQuery.ForeColor = Color.White;
-            btnNextQuery.Location = new Point(148, 207);
+            btnNextQuery.Location = new Point(148, 100);
             btnNextQuery.Name = "btnNextQuery";
             btnNextQuery.Size = new Size(115, 30);
             btnNextQuery.TabIndex = 6;
@@ -175,7 +167,7 @@
             btnPrevQuery.FlatStyle = FlatStyle.Flat;
             btnPrevQuery.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point);
             btnPrevQuery.ForeColor = Color.White;
-            btnPrevQuery.Location = new Point(16, 207);
+            btnPrevQuery.Location = new Point(16, 100);
             btnPrevQuery.Name = "btnPrevQuery";
             btnPrevQuery.Size = new Size(115, 30);
             btnPrevQuery.TabIndex = 5;
@@ -187,37 +179,11 @@
             // 
             lblQueryCount.AutoSize = true;
             lblQueryCount.Font = new Font("Segoe UI", 9.75F, FontStyle.Regular, GraphicsUnit.Point);
-            lblQueryCount.Location = new Point(16, 170);
+            lblQueryCount.Location = new Point(16, 70);
             lblQueryCount.Name = "lblQueryCount";
             lblQueryCount.Size = new Size(98, 17);
             lblQueryCount.TabIndex = 3;
             lblQueryCount.Text = "Queries found: ";
-            // 
-            // lblQueriesFile
-            // 
-            lblQueriesFile.AutoSize = true;
-            lblQueriesFile.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
-            lblQueriesFile.Location = new Point(16, 122);
-            lblQueriesFile.Name = "lblQueriesFile";
-            lblQueriesFile.Size = new Size(97, 15);
-            lblQueriesFile.TabIndex = 2;
-            lblQueriesFile.Text = "No file selected...";
-            // 
-            // btnBrowseQueries
-            // 
-            btnBrowseQueries.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            btnBrowseQueries.BackColor = Color.LightSteelBlue;
-            btnBrowseQueries.FlatAppearance.BorderSize = 0;
-            btnBrowseQueries.FlatStyle = FlatStyle.Flat;
-            btnBrowseQueries.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point);
-            btnBrowseQueries.ForeColor = Color.Navy;
-            btnBrowseQueries.Location = new Point(16, 78);
-            btnBrowseQueries.Name = "btnBrowseQueries";
-            btnBrowseQueries.Size = new Size(247, 34);
-            btnBrowseQueries.TabIndex = 1;
-            btnBrowseQueries.Text = "Browse Queries File...";
-            btnBrowseQueries.UseVisualStyleBackColor = false;
-            btnBrowseQueries.Click += btnBrowseQueries_Click;
             // 
             // lblQuerySectionTitle
             // 
@@ -233,10 +199,12 @@
             // lblDistance
             // 
             lblDistance.AutoSize = true;
-            lblDistance.Location = new Point(16, 411);
+            lblDistance.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point);
+            lblDistance.Location = new Point(16, 311);
             lblDistance.Name = "lblDistance";
-            lblDistance.Size = new Size(0, 15);
+            lblDistance.Size = new Size(143, 17);
             lblDistance.TabIndex = 11;
+            lblDistance.Text = "Minimum distance: N/A";
             // 
             // map_vis
             // 
@@ -263,15 +231,13 @@
         private SplitContainer splitContainer1;
         private Panel pnlQueryControls;
         private Label lblQuerySectionTitle;
-        private Button btnBrowseQueries;
-        private Label lblQueriesFile;
         private Label lblQueryCount;
         private Button btnPrevQuery;
         private Button btnNextQuery;
-        private Button btnRunAllQueries;
         private Button btnSaveAllResults;
         private Label lblCurrentQuery;
         private Label lblQueryInfo;
         private Label lblDistance;
+        private Label lblPathMetrics;
     }
 }

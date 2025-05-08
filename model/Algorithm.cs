@@ -115,7 +115,7 @@ namespace MAP_routing.model
             ForwardNodesData[Starting_Node.Id] = (-1, double.MaxValue, double.MaxValue, 0);
             BackwardNodesData[Ending_Node.Id] = (-1, double.MaxValue, double.MaxValue, 0);
 
-            while (ForwardQueue.Yaya_Elements.Count > 0 && BackwardQueue.Yaya_Elements.Count > 0)
+            while (ForwardQueue.Elements.Count > 0 && BackwardQueue.Elements.Count > 0)
             {
                 var (ForwardCurrentNode, ForwardEdgeWeight) = ForwardQueue.Dequeue();
 
@@ -184,18 +184,18 @@ namespace MAP_routing.model
                 }
 
                 double ForwardMinNode, BackwardMinNode;
-                if (ForwardQueue.Yaya_Elements.Count > 0)
+                if (ForwardQueue.Elements.Count > 0)
                 {
-                    ForwardMinNode = ForwardQueue.Yaya_Elements[0].Item2; // Access priority (weight)
+                    ForwardMinNode = ForwardQueue.Elements[0].Item2; // Access priority (weight)
                 }
                 else
                 {
                     ForwardMinNode = double.MaxValue;
                 }
 
-                if (BackwardQueue.Yaya_Elements.Count > 0)
+                if (BackwardQueue.Elements.Count > 0)
                 {
-                    BackwardMinNode = BackwardQueue.Yaya_Elements[0].Item2; // Access priority (weight)
+                    BackwardMinNode = BackwardQueue.Elements[0].Item2; // Access priority (weight)
                 }
                 else
                 {

@@ -187,7 +187,7 @@ namespace MAP_routing.view
 
                 if (_graph.Nodes.TryGetValue(nodeId, out var node))
                 {
-                    float radius = 10f;
+                    float radius = 100f;
 
                     var rect = new RectangleF(
                         node.X - radius, node.Y - radius,

@@ -1,6 +1,7 @@
-﻿namespace MAP_routing.model
-{
+﻿using System.Windows.Forms.VisualStyles;
 
+namespace MAP_routing.model
+{
     public class Node
     {
         public int Id { get; set; }
@@ -9,7 +10,6 @@
         public Color Color { get; set; } = Color.Blue;
         public bool IsPath { get; set; } = false;
         public List<Edge> Neighbors { get; set; } = new List<Edge>();
-
 
         public Node(int id, float x, float y)
         {
@@ -29,7 +29,6 @@
         public bool IsPath { get; set; } = false;
         public float Distance => Length;
         public double TimeMin => (Length / Speed) * 60.0;
-
 
         public Edge(int fromId, int toId, float length, int speed)
         {
@@ -52,19 +51,11 @@
             Nodes[id] = node;
         }
 
-        public void AddEdge(int fromId, int toId, float length, int speed, Color? color = null)
-        {
-            var edge = new Edge(fromId, toId, length, speed);
-            if (color.HasValue) edge.Color = color.Value;
-            Edges.Add(edge);
-        }
-
         public void Clear()
         {
             Nodes.Clear();
             Edges.Clear();
         }
-
 
         public void ReadFromFile(string filePath)
         {
@@ -123,8 +114,14 @@
                     !int.TryParse(parts[3], out int speed))
                     throw new FormatException($"Invalid road data at line {lineIndex}");
 
-                AddEdge(fromId, toId, length, speed);
-                AddEdge(toId, fromId, length, speed);
+                Edge edge1 = new Edge(fromId, toId, length, speed);
+                Edge edge2 = new Edge(toId, fromId, length, speed);
+
+                Edges.Add(edge1);
+                Edges.Add(edge2);
+
+                Nodes[fromId].Neighbors.Add(edge1);
+                Nodes[toId].Neighbors.Add(edge2);
             }
         }
 
@@ -139,7 +136,3 @@
         }
     }
 }
-
-
-
-
