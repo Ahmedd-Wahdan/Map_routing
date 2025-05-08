@@ -1,12 +1,11 @@
 ﻿using System.Drawing.Drawing2D;
 using MAP_routing.model;
-
 namespace MAP_routing.view
 {
     internal class graph_renderer
     {
-        private readonly Graph _graph;
-        private readonly Panel _panel;
+        private readonly List<Node> graph;
+        private readonly Panel panel;
 
         private float _scale = 1.0f;
         private PointF _offset = new PointF(0, 0);
@@ -17,12 +16,13 @@ namespace MAP_routing.view
 
         private Dictionary<int, Color> _highlightedNodes = new Dictionary<int, Color>();
         private List<Edge> _highlightedPath = new List<Edge>();
+        private List<Edge> edges;
 
-        public graph_renderer(Graph graph, Panel panel)
+        public graph_renderer(List<Node> _graph,List<Edge>_edges , Panel _panel)
         {
-            _graph = graph;
-            _panel = panel;
-
+            graph = _graph;
+            panel = _panel;
+            edges = _edges;
             CenterGraph();
             HookEvents();
         }

@@ -1,4 +1,5 @@
 using MAP_routing.model;
+using Microsoft.VisualBasic.ApplicationServices;
 using System.IO;
 
 namespace MAP_routing
@@ -7,9 +8,8 @@ namespace MAP_routing
     {
         private string selectedMapFilePath = string.Empty;
         private string selectedQueriesFilePath = string.Empty;
-        private Graph graph = new Graph();
-        private Queries queries = new Queries();
-        private List<QueryResult> queryResults = new List<QueryResult>();
+        private MapRouting map_route;
+        private List<Query> queries;
         private Algorithm algorithm;
 
         public Form1()
@@ -86,6 +86,7 @@ namespace MAP_routing
 
             try
             {
+
                 this.Cursor = Cursors.WaitCursor;
                 lblStatus.Text = "Loading map data...";
                 lblStatus.Visible = true;
@@ -93,30 +94,34 @@ namespace MAP_routing
                 progressBar.Style = ProgressBarStyle.Marquee;
 
                 Application.DoEvents();
-
-                graph = new Graph();
-                graph.ReadFromFile(selectedMapFilePath);
+                
+                
+                
+                
 
                 lblStatus.Text = "Loading queries data...";
                 Application.DoEvents();
+                ///////////////////////////////////////////////////////////
+                map_route = new MapRouting(selectedMapFilePath);
+                queries = Query.ReadFromFile(selectedQueriesFilePath);
+                algorithm = new Algorithm(map_route.graph, map_route.maxSpeedKmh,queries);
+                //////////////////////////////////////////////////////////
+                
 
-                queries = new Queries();
-                queries.ReadFromFile(selectedQueriesFilePath);
 
-                algorithm = new Algorithm(graph);
 
                 lblStatus.Text = "Processing queries...";
                 Application.DoEvents();
-
-                ProcessAllQueries();
-
+                //////////////////////////////////////////////////////////////
+                algorithm.ProcessQueries("C:\\Users\\ahmed\\Desktop\\output.txt");
+                //////////////////////////////////////////////////////////////
                 lblStatus.Text = "Opening visualization...";
                 progressBar.Style = ProgressBarStyle.Continuous;
                 progressBar.Value = 100;
                 Application.DoEvents();
 
-                map_vis mapForm = new map_vis(graph, queries, queryResults);
-                mapForm.Show();
+                //map_vis mapForm = new map_vis(graph, queries, queryResults);
+                //mapForm.Show();
 
                 lblStatus.Text = "Map visualized successfully!";
             }
@@ -131,49 +136,7 @@ namespace MAP_routing
             }
         }
 
-        private void ProcessAllQueries()
-        {
-            Dictionary<int, Node> nodes = graph.GetNodes();
-            queryResults.Clear();
 
-            int total = queries.GetQueryCount();
-            int processed = 0;
-
-            // Process queries in batches to avoid excessive UI updates
-            int batchSize = Math.Max(1, total / 20);
-
-            for (int i = 0; i < total; i++)
-            {
-                Query query = queries.GetQuery(i);
-                Algorithm.PathResult path = algorithm.Min_Path_Finding(query);
-
-                // Find node IDs for visualization purposes only
-                int startNodeId = path?.Path.FirstOrDefault() ?? Queries.FindNearestNode(nodes, query.StartX, query.StartY);
-                int endNodeId = path?.Path.LastOrDefault() ?? Queries.FindNearestNode(nodes, query.EndX, query.EndY);
-
-                double distance = path?.TotalDistanceKm ?? 0;
-
-                queryResults.Add(new QueryResult
-                {
-                    QueryId = query.Rmeteres,
-                    StartNodeId = startNodeId,
-                    EndNodeId = endNodeId,
-                    PathID = path ?? new Algorithm.PathResult(),
-                    Distance = distance
-                });
-
-                processed++;
-
-                // Update progress
-                if (processed % batchSize == 0 || processed == total)
-                {
-                    double percent = (double)processed / total * 100;
-                    lblStatus.Text = $"Processing queries: {processed}/{total} ({percent:F1}%)";
-                    progressBar.Value = (int)percent;
-                    Application.DoEvents();
-                }
-            }
-        }
 
         private void btnExit_Click(object sender, EventArgs e)
         {

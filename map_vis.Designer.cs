@@ -53,7 +53,7 @@
             panel1.Name = "panel1";
             panel1.Size = new Size(750, 682);
             panel1.TabIndex = 0;
-            panel1.Paint += panel1_Paint;
+            //panel1.Paint += panel1_Paint;
             // 
             // splitContainer1
             // 
@@ -143,7 +143,7 @@
             btnSaveAllResults.TabIndex = 8;
             btnSaveAllResults.Text = "Save All Results";
             btnSaveAllResults.UseVisualStyleBackColor = false;
-            btnSaveAllResults.Click += btnSaveAllResults_Click;
+            //btnSaveAllResults.Click += btnSaveAllResults_Click;
             // 
             // btnNextQuery
             // 
@@ -158,7 +158,7 @@
             btnNextQuery.TabIndex = 6;
             btnNextQuery.Text = "Next Query >";
             btnNextQuery.UseVisualStyleBackColor = false;
-            btnNextQuery.Click += btnNextQuery_Click;
+            //btnNextQuery.Click += btnNextQuery_Click;
             // 
             // btnPrevQuery
             // 
@@ -173,7 +173,7 @@
             btnPrevQuery.TabIndex = 5;
             btnPrevQuery.Text = "< Prev Query";
             btnPrevQuery.UseVisualStyleBackColor = false;
-            btnPrevQuery.Click += btnPrevQuery_Click;
+            //btnPrevQuery.Click += btnPrevQuery_Click;
             // 
             // lblQueryCount
             // 
@@ -216,8 +216,8 @@
             MinimumSize = new Size(800, 600);
             Name = "map_vis";
             Text = "MAP VISUALIZATION";
-            Load += map_vis_Load_1;
-            Resize += map_vis_Resize;
+            //Load += map_vis_Load_1;
+            //Resize += map_vis_Resize;
             splitContainer1.Panel1.ResumeLayout(false);
             splitContainer1.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)splitContainer1).EndInit();

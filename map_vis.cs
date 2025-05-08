@@ -1,14 +1,13 @@
 ﻿using MAP_routing.view;
 using MAP_routing.model;
-
 namespace MAP_routing
 {
     public partial class map_vis : Form
     {
         private graph_renderer _graphRenderer;
-        private Graph _graph;
-        private Queries _queries;
-        private List<QueryResult> _queryResults;
+        private List<Node> graph;
+        private List<Edge> edges;
+        private List<PathResult> path_results ;
 
         private int _currentQueryIndex = -1;
 
@@ -21,12 +20,12 @@ namespace MAP_routing
                 null, control, new object[] { true });
         }
 
-        public map_vis(Graph graph, Queries queries, List<QueryResult> queryResults)
+        public map_vis(List<Node> _graph, List<Edge> _edges, List<PathResult> _path_res)
         {
             InitializeComponent();
-            _graph = graph;
-            _queries = queries;
-            _queryResults = queryResults;
+            graph = _graph;
+            edges = _edges;
+            path_results = _path_res;
 
             EnableDoubleBuffering(panel1);
 
@@ -38,7 +37,7 @@ namespace MAP_routing
             this.Text = "MAP VISUALIZATION";
             this.Icon = SystemIcons.Application;
 
-            _graphRenderer = new graph_renderer(_graph, panel1);
+            _graphRenderer = new graph_renderer(graph,edges , panel1);
 
             InitializeQueryControls();
         }
@@ -256,13 +255,5 @@ namespace MAP_routing
         }
     }
 
-    public class QueryResult
-    {
-        public int QueryId { get; set; }
-        public int StartNodeId { get; set; }
-        public int EndNodeId { get; set; }
-        public Algorithm.PathResult PathID { get; set; }
-        public double Distance { get; set; }
-        public double Duration { get; set; }
-    }
+
 }
