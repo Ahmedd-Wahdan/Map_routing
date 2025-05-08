@@ -1,13 +1,15 @@
 ﻿using System.Drawing.Drawing2D;
+using System.IO;
+using System.Windows.Forms.VisualStyles;
 using MAP_routing.model;
 namespace MAP_routing.view
 {
     internal class graph_renderer
     {
-        private readonly List<Node> graph;
-        private readonly Panel panel;
+        private readonly List<Node> _graph;
+        private readonly Panel _panel;
 
-        private float _scale = 1.0f;
+        private double _scale = 1.0f;
         private PointF _offset = new PointF(0, 0);
         private bool _isPanning = false;
         private Point _lastMousePosition;
@@ -15,14 +17,14 @@ namespace MAP_routing.view
         private PointF _viewCenter = new PointF(0, 0);
 
         private Dictionary<int, Color> _highlightedNodes = new Dictionary<int, Color>();
+        private List<Edge> _edges;
         private List<Edge> _highlightedPath = new List<Edge>();
-        private List<Edge> edges;
 
-        public graph_renderer(List<Node> _graph,List<Edge>_edges , Panel _panel)
+        public graph_renderer(List<Node> graph, List<Edge> edges, Panel panel)
         {
-            graph = _graph;
-            panel = _panel;
-            edges = _edges;
+            _graph = graph;
+            _panel = panel;
+            _edges = edges;
             CenterGraph();
             HookEvents();
         }
@@ -33,28 +35,28 @@ namespace MAP_routing.view
 
         public void CenterGraph()
         {
-            if (_graph.Nodes.Count == 0) return;
+            if (_graph.Count == 0) return;
 
-            float minX = _graph.Nodes.Values.Min(n => n.X);
-            float maxX = _graph.Nodes.Values.Max(n => n.X);
-            float minY = _graph.Nodes.Values.Min(n => n.Y);
-            float maxY = _graph.Nodes.Values.Max(n => n.Y);
+            double minX = _graph.Min(n => n.X);
+            double maxX = _graph.Max(n => n.X);
+            double minY = _graph.Min(n => n.Y);
+            double maxY = _graph.Max(n => n.Y);
 
-            float centerX = (minX + maxX) / 2;
-            float centerY = (minY + maxY) / 2;
+            double centerX = (minX + maxX) / 2;
+            double centerY = (minY + maxY) / 2;
 
-            float graphWidth = maxX - minX;
-            float graphHeight = maxY - minY;
+            double graphWidth = maxX - minX;
+            double graphHeight = maxY - minY;
 
             if (graphWidth > 0 && graphHeight > 0)
             {
-                float scaleX = (_panel.Width * 0.9f) / graphWidth;
-                float scaleY = (_panel.Height * 0.9f) / graphHeight;
+                double scaleX = (_panel.Width * 0.9f) / graphWidth;
+                double scaleY = (_panel.Height * 0.9f) / graphHeight;
                 _scale = Math.Min(scaleX, scaleY);
                 _scale = Math.Max(0.01f, Math.Min(10f, _scale));
             }
 
-            _viewCenter = new PointF(centerX, centerY);
+            _viewCenter = new PointF((float)centerX, (float)centerY);
             UpdateOffsetFromViewCenter();
         }
 
@@ -71,24 +73,34 @@ namespace MAP_routing.view
             _highlightedNodes.Clear();
         }
 
-        public void HighlightPath(Algorithm.PathResult paths, Color color)
+        public void HighlightPath(PathResult path, Color color)
         {
-            if (paths == null || paths.Path.Count < 2)
+            if (path == null || path.Path.Count < 2)
                 return;
 
             _highlightedPath.Clear();
 
-            for (int i = 0; i < paths.Path.Count - 1; i++)
+            for (int i = 0; i < path.Path.Count - 1; i++)
             {
-                Edge edge = _graph.GetEdge(paths.Path[i], paths.Path[i + 1]);
-                if (edge != null)
+                int fromId = path.Path[i];
+                int toId = path.Path[i + 1];
+
+                // Find the edge in the graph
+                Node fromNode = _graph.FirstOrDefault(n => n.Id == fromId);
+                if (fromNode != null)
                 {
-                    Edge highlightedEdge = new Edge(edge.FromId, edge.ToId, edge.Length, edge.Speed)
+                    Edge edge = fromNode.Neighbors.FirstOrDefault(e => e.To.Id == toId);
+                    if (edge != null)
                     {
-                        Color = Color.Blue,
-                        IsPath = true
-                    };
-                    _highlightedPath.Add(highlightedEdge);
+                        // Create a copy of the edge for highlighting
+                        Edge highlightedEdge = new Edge
+                        {
+                            To = edge.To,
+                            LengthKm = edge.LengthKm,
+                            SpeedKmh = edge.SpeedKmh
+                        };
+                        _highlightedPath.Add(highlightedEdge);
+                    }
                 }
             }
         }
@@ -101,8 +113,8 @@ namespace MAP_routing.view
 
         private void UpdateOffsetFromViewCenter()
         {
-            _offset.X = _panel.Width / 2f - _viewCenter.X * _scale;
-            _offset.Y = _panel.Height / 2f + _viewCenter.Y * _scale;
+            _offset.X = (float)(_panel.Width / 2 - _viewCenter.X * _scale);
+            _offset.Y = (float)(_panel.Height / 2 + _viewCenter.Y * _scale);
         }
 
         #region Event Hooks
@@ -128,7 +140,7 @@ namespace MAP_routing.view
             g.Clear(Color.White);
 
             g.TranslateTransform(_offset.X, _offset.Y);
-            g.ScaleTransform(_scale, -_scale);
+            g.ScaleTransform((float)_scale, (float)-_scale);
 
             DrawBoundingBox(g);
             DrawGraph(g);
@@ -144,21 +156,21 @@ namespace MAP_routing.view
         {
             RectangleF visibleBounds = GetVisibleWorldBounds();
 
-            foreach (var edge in _graph.Edges)
+            foreach (var node in _graph)
             {
-                if (_graph.Nodes.TryGetValue(edge.FromId, out var from) &&
-                    _graph.Nodes.TryGetValue(edge.ToId, out var to))
+                foreach (var edge in node.Neighbors)
                 {
-                    if (visibleBounds.Contains(from.X, from.Y) || visibleBounds.Contains(to.X, to.Y))
+                    if (visibleBounds.Contains((float)node.X, (float)node.Y) ||
+                        visibleBounds.Contains((float)edge.To.X, (float)edge.To.Y))
                     {
-                        DrawEdge(g, edge);
+                        DrawEdge(g, node, edge);
                     }
                 }
             }
 
-            foreach (var node in _graph.Nodes.Values)
+            foreach (Node node in _graph)
             {
-                if (visibleBounds.Contains(node.X, node.Y))
+                if (visibleBounds.Contains((float)node.X, (float)node.Y))
                 {
                     DrawNode(g, node);
                 }
@@ -169,11 +181,11 @@ namespace MAP_routing.view
         {
             foreach (var edge in _highlightedPath)
             {
-                if (_graph.Nodes.TryGetValue(edge.FromId, out var from) &&
-                    _graph.Nodes.TryGetValue(edge.ToId, out var to))
+                Node from = _graph.FirstOrDefault(n => n.Neighbors.Contains(edge));
+                if (from != null)
                 {
-                    using var pen = new Pen(edge.Color, 3f);
-                    g.DrawLine(pen, from.X, from.Y, to.X, to.Y);
+                    using var pen = new Pen(Color.Blue, 3f / (float)_scale);
+                    g.DrawLine(pen, (float)from.X, (float)from.Y, (float)edge.To.X, (float)edge.To.Y);
                 }
             }
         }
@@ -185,17 +197,18 @@ namespace MAP_routing.view
                 int nodeId = kvp.Key;
                 Color highlightColor = kvp.Value;
 
-                if (_graph.Nodes.TryGetValue(nodeId, out var node))
+                Node node = _graph.FirstOrDefault(n => n.Id == nodeId);
+                if (node != null)
                 {
-                    float radius = 100f;
+                    float radius = 100f / (float)_scale;
 
                     var rect = new RectangleF(
-                        node.X - radius, node.Y - radius,
+                        (float)node.X - radius, (float)node.Y - radius,
                         radius * 2, radius * 2
                     );
 
                     using var brush = new SolidBrush(highlightColor);
-                    using var pen = new Pen(Color.Black, 1.5f);
+                    using var pen = new Pen(Color.Black, 1.5f / (float)_scale);
 
                     g.FillEllipse(brush, rect);
                     g.DrawEllipse(pen, rect);
@@ -211,7 +224,7 @@ namespace MAP_routing.view
             float radius = 3f;
 
             var rect = new RectangleF(
-                node.X - radius, node.Y - radius,
+                (float)node.X - radius, (float)node.Y - radius,
                 radius * 2, radius * 2
             );
 
@@ -222,30 +235,26 @@ namespace MAP_routing.view
             g.DrawEllipse(pen, rect);
         }
 
-        public void DrawEdge(Graphics g, Edge edge)
+        public void DrawEdge(Graphics g, Node from, Edge edge)
         {
-            if (_highlightedPath.Any(e => e.FromId == edge.FromId && e.ToId == edge.ToId))
+            if (_highlightedPath.Any(e => e.To.Id == edge.To.Id && _graph.FirstOrDefault(n => n.Neighbors.Contains(e))?.Id == from.Id))
                 return;
 
-            if (!_graph.Nodes.TryGetValue(edge.FromId, out var from) ||
-                !_graph.Nodes.TryGetValue(edge.ToId, out var to))
-                return;
-
-            using var pen = new Pen(edge.IsPath ? Color.Red : edge.Color, edge.IsPath ? 3f : 1f);
-            g.DrawLine(pen, from.X, from.Y, to.X, to.Y);
+            using var pen = new Pen(Color.Gray, 1f / (float)_scale);
+            g.DrawLine(pen, (float)from.X, (float)from.Y, (float)edge.To.X, (float)edge.To.Y);
         }
 
         private void DrawBoundingBox(Graphics g)
         {
-            if (_graph.Nodes.Count == 0) return;
+            if (_graph.Count == 0) return;
 
-            float minX = _graph.Nodes.Values.Min(n => n.X);
-            float maxX = _graph.Nodes.Values.Max(n => n.X);
-            float minY = _graph.Nodes.Values.Min(n => n.Y);
-            float maxY = _graph.Nodes.Values.Max(n => n.Y);
+            double minX = _graph.Min(n => n.X);
+            double maxX = _graph.Max(n => n.X);
+            double minY = _graph.Min(n => n.Y);
+            double maxY = _graph.Max(n => n.Y);
 
-            var rect = new RectangleF(minX, minY, maxX - minX, maxY - minY);
-            using var pen = new Pen(Color.LightGray, 5f / _scale) { DashStyle = DashStyle.Dash };
+            var rect = new RectangleF((float)minX, (float)minY, (float)(maxX - minX), (float)(maxY - minY));
+            using var pen = new Pen(Color.LightGray, (float)(5f / _scale)) { DashStyle = DashStyle.Dash };
             g.DrawRectangle(pen, rect.X, rect.Y, rect.Width, rect.Height);
         }
 
@@ -253,16 +262,16 @@ namespace MAP_routing.view
 
         private RectangleF GetVisibleWorldBounds()
         {
-            float left = (0 - _offset.X) / _scale;
-            float top = -((0 - _offset.Y) / _scale);
-            float right = (_panel.Width - _offset.X) / _scale;
-            float bottom = -((_panel.Height - _offset.Y) / _scale);
+            double left = (0 - _offset.X) / _scale;
+            double top = -((0 - _offset.Y) / _scale);
+            double right = (_panel.Width - _offset.X) / _scale;
+            double bottom = -((_panel.Height - _offset.Y) / _scale);
 
             return new RectangleF(
-                Math.Min(left, right),
-                Math.Min(top, bottom),
-                Math.Abs(right - left),
-                Math.Abs(bottom - top)
+                (float)Math.Min(left, right),
+                (float)Math.Min(top, bottom),
+                (float)Math.Abs(right - left),
+                (float)Math.Abs(bottom - top)
             );
         }
 
@@ -271,8 +280,8 @@ namespace MAP_routing.view
         private PointF ScreenToWorld(Point screenPoint)
         {
             return new PointF(
-                (screenPoint.X - _offset.X) / _scale,
-                -((screenPoint.Y - _offset.Y) / _scale)
+                (float)((screenPoint.X - _offset.X) / _scale),
+                (float)(-((screenPoint.Y - _offset.Y) / _scale))
             );
         }
 
@@ -284,15 +293,15 @@ namespace MAP_routing.view
         {
             PointF worldPoint = ScreenToWorld(e.Location);
 
-            float oldScale = _scale;
-            float zoomFactor = e.Delta > 0 ? 1.1f : 0.9f;
+            double oldScale = _scale;
+            double zoomFactor = e.Delta > 0 ? 1.1f : 0.9f;
             _scale *= zoomFactor;
             _scale = Math.Max(0.01f, Math.Min(10f, _scale));
 
-            float scaleRatio = _scale / oldScale;
+            double scaleRatio = _scale / oldScale;
 
-            _viewCenter.X = worldPoint.X + (_viewCenter.X - worldPoint.X) / scaleRatio;
-            _viewCenter.Y = worldPoint.Y + (_viewCenter.Y - worldPoint.Y) / scaleRatio;
+            _viewCenter.X = (float)(worldPoint.X + (_viewCenter.X - worldPoint.X) / scaleRatio);
+            _viewCenter.Y = (float)(worldPoint.Y + (_viewCenter.Y - worldPoint.Y) / scaleRatio);
 
             UpdateOffsetFromViewCenter();
 
@@ -316,11 +325,11 @@ namespace MAP_routing.view
                 float dx = e.X - _lastMousePosition.X;
                 float dy = e.Y - _lastMousePosition.Y;
 
-                float worldDx = dx / _scale;
-                float worldDy = -dy / _scale;
+                double worldDx = dx / _scale;
+                double worldDy = -dy / _scale;
 
-                _viewCenter.X -= worldDx;
-                _viewCenter.Y -= worldDy;
+                _viewCenter.X -= (float)worldDx;
+                _viewCenter.Y -= (float)worldDy;
 
                 UpdateOffsetFromViewCenter();
 

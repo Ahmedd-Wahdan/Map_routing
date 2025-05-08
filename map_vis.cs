@@ -7,7 +7,7 @@ namespace MAP_routing
         private graph_renderer _graphRenderer;
         private List<Node> graph;
         private List<Edge> edges;
-        private List<PathResult> path_results ;
+        private List<PathResult> path_results;
 
         private int _currentQueryIndex = -1;
 
@@ -45,13 +45,13 @@ namespace MAP_routing
         private void InitializeQueryControls()
         {
             btnPrevQuery.Enabled = false;
-            btnSaveAllResults.Enabled = _queryResults != null && _queryResults.Count > 0;
+            btnSaveAllResults.Enabled = path_results != null && path_results.Count > 0;
 
-            if (_queries != null && _queries.GetQueryCount() > 0)
+            if (path_results != null && path_results.Count > 0)
             {
-                lblQueryCount.Text = $"Queries found: {_queries.GetQueryCount()}";
+                lblQueryCount.Text = $"Queries found: {path_results.Count}";
                 _currentQueryIndex = 0;
-                btnNextQuery.Enabled = _queries.GetQueryCount() > 1;
+                btnNextQuery.Enabled = path_results.Count > 1;
                 DisplayCurrentQuery();
             }
             else
@@ -81,44 +81,43 @@ namespace MAP_routing
 
         private void DisplayCurrentQuery()
         {
-            if (_currentQueryIndex >= 0 && _currentQueryIndex < _queries.GetQueryCount())
+            if (_currentQueryIndex >= 0 && _currentQueryIndex < path_results.Count)
             {
-                Query query = _queries.GetQuery(_currentQueryIndex);
+                PathResult path = path_results[_currentQueryIndex];
                 lblCurrentQuery.Text = $"Current Query: {_currentQueryIndex + 1}";
 
-                lblQueryInfo.Text = $"Query ID: {query.Rmeteres}\n" +
-                                   $"Start: ({query.StartX}, {query.StartY})\n" +
-                                   $"End: ({query.EndX}, {query.EndY})";
+                lblQueryInfo.Text = $"Start: ({path.source.X}, {path.source.Y})\n" +
+                                    $"End: ({path.dest.X}, {path.dest.Y})";
 
                 btnPrevQuery.Enabled = _currentQueryIndex > 0;
-                btnNextQuery.Enabled = _currentQueryIndex < _queries.GetQueryCount() - 1;
+                btnNextQuery.Enabled = _currentQueryIndex < path_results.Count - 1;
 
                 // Display the path if it exists in results
-                if (_queryResults != null && _currentQueryIndex < _queryResults.Count)
+                if (path_results != null && _currentQueryIndex < path_results.Count)
                 {
-                    QueryResult result = _queryResults[_currentQueryIndex];
-                    lblDistance.Text = $"Minimum distance: {result.Distance:F2}";
+                    PathResult result = path_results[_currentQueryIndex];
+                    lblDistance.Text = $"Minimum distance: {result.TotalDistanceKm:F2}";
 
                     // Show additional path metrics if available
-                    if (result.PathID != null)
+                    if (result != null)
                     {
-                        lblPathMetrics.Text = $"Total time: {result.PathID.TotalTimeMin:F2} mins\n" +
-                                             $"Total distance: {result.PathID.TotalDistanceKm:F2} km\n" +
-                                             $"Walking: {result.PathID.WalkingDistanceKm:F2} km\n" +
-                                             $"Vehicle: {result.PathID.VehicleDistanceKm:F2} km";
+                        lblPathMetrics.Text = $"Total time: {result.TotalDistanceKm:F2} mins\n" +
+                                             $"Total distance: {result.TotalDistanceKm:F2} km\n" +
+                                             $"Walking: {result.WalkingDistanceKm:F2} km\n" +
+                                             $"Vehicle: {result.VehicleDistanceKm:F2} km";
                     }
                     else
                     {
                         lblPathMetrics.Text = "";
                     }
 
-                    HighlightQueryPath(query, result.PathID);
+                    HighlightQueryPath(result);
                 }
                 else
                 {
                     lblDistance.Text = "Minimum distance: N/A";
                     lblPathMetrics.Text = "";
-                    HighlightQueryPoints(query);
+                    HighlightQueryPoints(path);
                 }
             }
             else
@@ -132,38 +131,31 @@ namespace MAP_routing
             }
         }
 
-        private void HighlightQueryPoints(Query query)
+        private void HighlightQueryPoints(PathResult query)
         {
-            Dictionary<int, Node> nodes = _graph.GetNodes();
-            int startNodeId = Queries.FindNearestNode(nodes, query.StartX, query.StartY);
-            int endNodeId = Queries.FindNearestNode(nodes, query.EndX, query.EndY);
+            List<Node> nodes = graph;
+            Node startNode = query.source;
+            Node endNode = query.dest;
 
             _graphRenderer.ClearHighlightedNodes();
             _graphRenderer.ClearHighlightedPath();
-
-            if (nodes.ContainsKey(startNodeId))
-                _graphRenderer.HighlightNode(nodes[startNodeId], Color.Green);
-
-            if (nodes.ContainsKey(endNodeId))
-                _graphRenderer.HighlightNode(nodes[endNodeId], Color.Red);
+            _graphRenderer.HighlightNode(startNode, Color.Green);
+            _graphRenderer.HighlightNode(endNode, Color.Red);
 
             _graphRenderer.Redraw();
         }
 
-        private void HighlightQueryPath(Query query, Algorithm.PathResult path)
+        private void HighlightQueryPath(PathResult path)
         {
-            Dictionary<int, Node> nodes = _graph.GetNodes();
-            int startNodeId = Queries.FindNearestNode(nodes, query.StartX, query.StartY);
-            int endNodeId = Queries.FindNearestNode(nodes, query.EndX, query.EndY);
+            List<Node> nodes = graph;
+            Node startNode = path.source;
+            Node endNode = path.dest;
 
             _graphRenderer.ClearHighlightedNodes();
             _graphRenderer.ClearHighlightedPath();
 
-            if (nodes.ContainsKey(startNodeId))
-                _graphRenderer.HighlightNode(nodes[startNodeId], Color.Green);
-
-            if (nodes.ContainsKey(endNodeId))
-                _graphRenderer.HighlightNode(nodes[endNodeId], Color.Red);
+            _graphRenderer.HighlightNode(startNode, Color.Green);
+            _graphRenderer.HighlightNode(endNode, Color.Red);
 
             if (path != null && path.Path.Count > 0)
             {
@@ -184,7 +176,7 @@ namespace MAP_routing
 
         private void btnNextQuery_Click(object sender, EventArgs e)
         {
-            if (_currentQueryIndex < _queries.GetQueryCount() - 1)
+            if (_currentQueryIndex < path_results.Count - 1)
             {
                 _currentQueryIndex++;
                 DisplayCurrentQuery();
@@ -198,7 +190,7 @@ namespace MAP_routing
 
         private void SaveAllResults()
         {
-            if (_queryResults == null || _queryResults.Count == 0)
+            if (path_results == null || path_results.Count == 0)
             {
                 MessageBox.Show("No results to save.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
@@ -215,14 +207,14 @@ namespace MAP_routing
                     {
                         using (StreamWriter writer = new StreamWriter(saveFileDialog.FileName))
                         {
-                            foreach (var result in _queryResults)
+                            foreach (var result in path_results)
                             {
-                                if (result.PathID != null && result.PathID.Path.Count > 0)
+                                if (result != null && result.Path.Count > 0)
                                 {
-                                    for (int i = 0; i < result.PathID.Path.Count; i++)
+                                    for (int i = 0; i < result.Path.Count; i++)
                                     {
-                                        writer.Write(result.PathID.Path[i]);
-                                        if (i < result.PathID.Path.Count - 1)
+                                        writer.Write(result.Path[i]);
+                                        if (i < result.Path.Count - 1)
                                             writer.Write(" ");
                                     }
                                     writer.WriteLine();
@@ -232,10 +224,10 @@ namespace MAP_routing
                                     writer.WriteLine("No path found");
                                 }
 
-                                writer.WriteLine($"{result.PathID.TotalTimeMin:F2} mins");
-                                writer.WriteLine($"{result.PathID.TotalDistanceKm:F2} km");
-                                writer.WriteLine($"{result.PathID.WalkingDistanceKm:F2} km");
-                                writer.WriteLine($"{result.PathID.VehicleDistanceKm:F2} km");
+                                writer.WriteLine($"{result.TotalTimeMin:F2} mins");
+                                writer.WriteLine($"{result.TotalDistanceKm:F2} km");
+                                writer.WriteLine($"{result.WalkingDistanceKm:F2} km");
+                                writer.WriteLine($"{result.VehicleDistanceKm:F2} km");
 
                                 writer.WriteLine();
                             }

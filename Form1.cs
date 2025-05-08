@@ -63,13 +63,6 @@ namespace MAP_routing
             btnVisualize.Enabled = !string.IsNullOrEmpty(selectedMapFilePath) && !string.IsNullOrEmpty(selectedQueriesFilePath);
         }
 
-        private void LogOperation(string operation, TimeSpan duration)
-        {
-            string logMessage = $"{operation}: {duration.TotalMilliseconds:F2} ms";
-            lblStatus.Text = logMessage;
-            Application.DoEvents();
-        }
-
         private void btnVisualize_Click(object sender, EventArgs e)
         {
             if (string.IsNullOrEmpty(selectedMapFilePath) || string.IsNullOrEmpty(selectedQueriesFilePath))
@@ -95,9 +88,6 @@ namespace MAP_routing
 
                 Application.DoEvents();
                 
-                
-                
-                
 
                 lblStatus.Text = "Loading queries data...";
                 Application.DoEvents();
@@ -113,15 +103,15 @@ namespace MAP_routing
                 lblStatus.Text = "Processing queries...";
                 Application.DoEvents();
                 //////////////////////////////////////////////////////////////
-                algorithm.ProcessQueries("C:\\Users\\ahmed\\Desktop\\output.txt");
+                List<PathResult> PRs = algorithm.ProcessQueries("C:\\Users\\2hmed\\Desktop\\output.txt");
                 //////////////////////////////////////////////////////////////
                 lblStatus.Text = "Opening visualization...";
                 progressBar.Style = ProgressBarStyle.Continuous;
                 progressBar.Value = 100;
                 Application.DoEvents();
 
-                //map_vis mapForm = new map_vis(graph, queries, queryResults);
-                //mapForm.Show();
+                map_vis mapForm = new map_vis(map_route.graph, map_route.edges, PRs);
+                mapForm.Show();
 
                 lblStatus.Text = "Map visualized successfully!";
             }

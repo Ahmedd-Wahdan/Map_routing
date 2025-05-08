@@ -12,6 +12,8 @@ namespace MAP_routing.model
         public int Id { get; set; }
         public double X { get; set; }
         public double Y { get; set; }
+        public bool IsPath { get; set; } = false;
+        public Color Color { get; set; } = Color.Blue;
         public List<Edge> Neighbors { get; set; } = new List<Edge>();
 
 
@@ -22,6 +24,8 @@ namespace MAP_routing.model
         public Node To { get; set; }
         public double LengthKm { get; set; }
         public double SpeedKmh { get; set; }
+        public Color Color { get; set; } = Color.Gray;
+        public bool IsPath { get; set; } = false;
         public double TimeMin => (LengthKm / SpeedKmh) * 60.0;
     }
 
@@ -47,11 +51,9 @@ namespace MAP_routing.model
         public static List<Query> ReadFromFile(string filePath)
         {
 
+            List<Query> Queries = new List<Query>();
 
-
-         List<Query> Queries = new List<Query>();
-
-        string[] lines;
+            string[] lines;
             try
             {
                 lines = File.ReadAllLines(filePath);
@@ -107,7 +109,7 @@ namespace MAP_routing.model
     {
 
         public List<Node> graph = new List<Node>();
-        public static List<Edge> edges = new List<Edge>();
+        public List<Edge> edges = new List<Edge>();
         public double maxSpeedKmh = 0.0; //initial value it gets changed in the readmapfile
 
         public MapRouting(string mapFile)
