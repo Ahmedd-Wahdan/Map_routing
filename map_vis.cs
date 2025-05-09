@@ -11,6 +11,15 @@ namespace MAP_routing
 
         private int _currentQueryIndex = -1;
 
+        public PathResult GetCurrentPathResult()
+        {
+            if (_currentQueryIndex >= 0 && _currentQueryIndex < path_results.Count)
+            {
+                return path_results[_currentQueryIndex];
+            }
+            return null;
+        }
+
         private void EnableDoubleBuffering(Control control)
         {
             typeof(Control).InvokeMember("DoubleBuffered",
@@ -37,7 +46,7 @@ namespace MAP_routing
             this.Text = "MAP VISUALIZATION";
             this.Icon = SystemIcons.Application;
 
-            _graphRenderer = new graph_renderer(graph,edges , panel1);
+            _graphRenderer = new graph_renderer(graph, edges, panel1);
 
             InitializeQueryControls();
         }
@@ -61,24 +70,6 @@ namespace MAP_routing
             }
         }
 
-        private void map_vis_Load_1(object sender, EventArgs e)
-        {
-            _graphRenderer.Redraw();
-        }
-
-        private void panel1_Paint(object sender, PaintEventArgs e)
-        {
-            // drawing is handled by the graph_renderer
-        }
-
-        private void map_vis_Resize(object sender, EventArgs e)
-        {
-            if (_graphRenderer != null)
-            {
-                _graphRenderer.Redraw();
-            }
-        }
-
         private void DisplayCurrentQuery()
         {
             if (_currentQueryIndex >= 0 && _currentQueryIndex < path_results.Count)
@@ -86,32 +77,28 @@ namespace MAP_routing
                 PathResult path = path_results[_currentQueryIndex];
                 lblCurrentQuery.Text = $"Current Query: {_currentQueryIndex + 1}";
 
-                lblQueryInfo.Text = $"Start: ({path.source.X}, {path.source.Y})\n" +
-                                    $"End: ({path.dest.X}, {path.dest.Y})";
+                lblQueryInfo.Text = $"Start: ({path.source.X:F2}, {path.source.Y:F2})\n" +
+                                    $"End: ({path.dest.X:F2}, {path.dest.Y:F2})";
 
                 btnPrevQuery.Enabled = _currentQueryIndex > 0;
                 btnNextQuery.Enabled = _currentQueryIndex < path_results.Count - 1;
 
-                // Display the path if it exists in results
-                if (path_results != null && _currentQueryIndex < path_results.Count)
+                if (path != null)
                 {
-                    PathResult result = path_results[_currentQueryIndex];
-                    lblDistance.Text = $"Minimum distance: {result.TotalDistanceKm:F2}";
+                    lblDistance.Text = $"Minimum distance: {path.TotalDistanceKm:F2} km";
+                    lblPathMetrics.Text = $"Total time: {path.TotalTimeMin:F2} mins\n" +
+                                         $"Total distance: {path.TotalDistanceKm:F2} km\n" +
+                                         $"Walking: {path.WalkingDistanceKm:F2} km\n" +
+                                         $"Vehicle: {path.VehicleDistanceKm:F2} km\n";
 
-                    // Show additional path metrics if available
-                    if (result != null)
+                    if (path.Path != null && path.Path.Count > 0)
                     {
-                        lblPathMetrics.Text = $"Total time: {result.TotalDistanceKm:F2} mins\n" +
-                                             $"Total distance: {result.TotalDistanceKm:F2} km\n" +
-                                             $"Walking: {result.WalkingDistanceKm:F2} km\n" +
-                                             $"Vehicle: {result.VehicleDistanceKm:F2} km";
+                        HighlightQueryPath(path);
                     }
                     else
                     {
-                        lblPathMetrics.Text = "";
+                        HighlightQueryPoints(path);
                     }
-
-                    HighlightQueryPath(result);
                 }
                 else
                 {
@@ -129,35 +116,28 @@ namespace MAP_routing
                 btnPrevQuery.Enabled = false;
                 btnNextQuery.Enabled = false;
             }
+
+            _graphRenderer.Redraw();
         }
 
         private void HighlightQueryPoints(PathResult query)
         {
-            List<Node> nodes = graph;
-            Node startNode = query.source;
-            Node endNode = query.dest;
+            if (query == null) return;
 
             _graphRenderer.ClearHighlightedNodes();
             _graphRenderer.ClearHighlightedPath();
-            _graphRenderer.HighlightNode(startNode, Color.Green);
-            _graphRenderer.HighlightNode(endNode, Color.Red);
 
             _graphRenderer.Redraw();
         }
 
         private void HighlightQueryPath(PathResult path)
         {
-            List<Node> nodes = graph;
-            Node startNode = path.source;
-            Node endNode = path.dest;
+            if (path == null) return;
 
             _graphRenderer.ClearHighlightedNodes();
             _graphRenderer.ClearHighlightedPath();
 
-            _graphRenderer.HighlightNode(startNode, Color.Green);
-            _graphRenderer.HighlightNode(endNode, Color.Red);
-
-            if (path != null && path.Path.Count > 0)
+            if (path != null && path.Edges.Count > 0)
             {
                 _graphRenderer.HighlightPath(path, Color.Blue);
             }
@@ -246,6 +226,4 @@ namespace MAP_routing
             }
         }
     }
-
-
 }

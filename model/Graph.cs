@@ -13,7 +13,7 @@ namespace MAP_routing.model
         public double X { get; set; }
         public double Y { get; set; }
         public bool IsPath { get; set; } = false;
-        public Color Color { get; set; } = Color.Blue;
+        public Color Color { get; set; } = Color.Black;
         public List<Edge> Neighbors { get; set; } = new List<Edge>();
 
 
@@ -100,6 +100,7 @@ namespace MAP_routing.model
         public Node source { get; set; }
         public Node dest { get; set; }
         public List<int> Path { get; set; } = new List<int>();
+        public List<Edge> Edges { get; set; } = new List<Edge>();
         public double TotalTimeMin { get; set; }
         public double TotalDistanceKm { get; set; }
         public double WalkingDistanceKm { get; set; }

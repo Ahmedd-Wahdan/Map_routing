@@ -98,8 +98,6 @@ namespace MAP_routing
                 //////////////////////////////////////////////////////////
                 
 
-
-
                 lblStatus.Text = "Processing queries...";
                 Application.DoEvents();
                 //////////////////////////////////////////////////////////////

@@ -29,6 +29,7 @@
             splitContainer1 = new SplitContainer();
             pnlQueryControls = new Panel();
             lblPathMetrics = new Label();
+            lblDistance = new Label();
             lblQueryInfo = new Label();
             lblCurrentQuery = new Label();
             btnSaveAllResults = new Button();
@@ -36,7 +37,6 @@
             btnPrevQuery = new Button();
             lblQueryCount = new Label();
             lblQuerySectionTitle = new Label();
-            lblDistance = new Label();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
             splitContainer1.Panel2.SuspendLayout();
@@ -53,7 +53,6 @@
             panel1.Name = "panel1";
             panel1.Size = new Size(750, 682);
             panel1.TabIndex = 0;
-            //panel1.Paint += panel1_Paint;
             // 
             // splitContainer1
             // 
@@ -105,6 +104,16 @@
             lblPathMetrics.Size = new Size(247, 80);
             lblPathMetrics.TabIndex = 12;
             // 
+            // lblDistance
+            // 
+            lblDistance.AutoSize = true;
+            lblDistance.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point);
+            lblDistance.Location = new Point(16, 311);
+            lblDistance.Name = "lblDistance";
+            lblDistance.Size = new Size(156, 17);
+            lblDistance.TabIndex = 11;
+            lblDistance.Text = "Minimum distance: N/A";
+            // 
             // lblQueryInfo
             // 
             lblQueryInfo.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
@@ -143,7 +152,7 @@
             btnSaveAllResults.TabIndex = 8;
             btnSaveAllResults.Text = "Save All Results";
             btnSaveAllResults.UseVisualStyleBackColor = false;
-            //btnSaveAllResults.Click += btnSaveAllResults_Click;
+            btnSaveAllResults.Click += btnSaveAllResults_Click;
             // 
             // btnNextQuery
             // 
@@ -158,7 +167,7 @@
             btnNextQuery.TabIndex = 6;
             btnNextQuery.Text = "Next Query >";
             btnNextQuery.UseVisualStyleBackColor = false;
-            //btnNextQuery.Click += btnNextQuery_Click;
+            btnNextQuery.Click += btnNextQuery_Click;
             // 
             // btnPrevQuery
             // 
@@ -173,7 +182,7 @@
             btnPrevQuery.TabIndex = 5;
             btnPrevQuery.Text = "< Prev Query";
             btnPrevQuery.UseVisualStyleBackColor = false;
-            //btnPrevQuery.Click += btnPrevQuery_Click;
+            btnPrevQuery.Click += btnPrevQuery_Click;
             // 
             // lblQueryCount
             // 
@@ -196,16 +205,6 @@
             lblQuerySectionTitle.TabIndex = 0;
             lblQuerySectionTitle.Text = "Query Navigation";
             // 
-            // lblDistance
-            // 
-            lblDistance.AutoSize = true;
-            lblDistance.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point);
-            lblDistance.Location = new Point(16, 311);
-            lblDistance.Name = "lblDistance";
-            lblDistance.Size = new Size(143, 17);
-            lblDistance.TabIndex = 11;
-            lblDistance.Text = "Minimum distance: N/A";
-            // 
             // map_vis
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -216,8 +215,6 @@
             MinimumSize = new Size(800, 600);
             Name = "map_vis";
             Text = "MAP VISUALIZATION";
-            //Load += map_vis_Load_1;
-            //Resize += map_vis_Resize;
             splitContainer1.Panel1.ResumeLayout(false);
             splitContainer1.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)splitContainer1).EndInit();

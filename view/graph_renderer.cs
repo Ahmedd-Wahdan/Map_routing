@@ -20,6 +20,8 @@ namespace MAP_routing.view
         private List<Edge> _edges;
         private List<Edge> _highlightedPath = new List<Edge>();
 
+        private Dictionary<Edge, Node> _edgeSourceCache = new Dictionary<Edge, Node>();
+
         public graph_renderer(List<Node> graph, List<Edge> edges, Panel panel)
         {
             _graph = graph;
@@ -60,14 +62,6 @@ namespace MAP_routing.view
             UpdateOffsetFromViewCenter();
         }
 
-        public void HighlightNode(Node node, Color color)
-        {
-            if (node != null)
-            {
-                _highlightedNodes[node.Id] = color;
-            }
-        }
-
         public void ClearHighlightedNodes()
         {
             _highlightedNodes.Clear();
@@ -75,38 +69,32 @@ namespace MAP_routing.view
 
         public void HighlightPath(PathResult path, Color color)
         {
-            if (path == null || path.Path.Count < 2)
+            if (path == null || path.Edges == null || path.Edges.Count == 0)
                 return;
 
             _highlightedPath.Clear();
+            _edgeSourceCache.Clear();
 
-            for (int i = 0; i < path.Path.Count - 1; i++)
+            foreach (var node in _graph)
             {
-                int fromId = path.Path[i];
-                int toId = path.Path[i + 1];
-
-                // Find the edge in the graph
-                Node fromNode = _graph.FirstOrDefault(n => n.Id == fromId);
-                if (fromNode != null)
+                foreach (var edge in node.Neighbors)
                 {
-                    Edge edge = fromNode.Neighbors.FirstOrDefault(e => e.To.Id == toId);
-                    if (edge != null)
-                    {
-                        // Create a copy of the edge for highlighting
-                        Edge highlightedEdge = new Edge
-                        {
-                            To = edge.To,
-                            LengthKm = edge.LengthKm,
-                            SpeedKmh = edge.SpeedKmh
-                        };
-                        _highlightedPath.Add(highlightedEdge);
-                    }
+                    _edgeSourceCache[edge] = node;
                 }
             }
+
+            foreach (var edge in path.Edges)
+            {
+                edge.IsPath = true;
+                edge.Color = color;
+                _highlightedPath.Add(edge);
+            }
         }
+
         public void ClearHighlightedPath()
         {
             _highlightedPath.Clear();
+            _edgeSourceCache.Clear();
         }
 
         #endregion
@@ -144,8 +132,6 @@ namespace MAP_routing.view
 
             DrawBoundingBox(g);
             DrawGraph(g);
-            DrawHighlightedPath(g);
-            DrawHighlightedNodes(g);
         }
 
         #endregion
@@ -160,12 +146,20 @@ namespace MAP_routing.view
             {
                 foreach (var edge in node.Neighbors)
                 {
-                    if (visibleBounds.Contains((float)node.X, (float)node.Y) ||
-                        visibleBounds.Contains((float)edge.To.X, (float)edge.To.Y))
+                    if ((visibleBounds.Contains((float)node.X, (float)node.Y) ||
+                        visibleBounds.Contains((float)edge.To.X, (float)edge.To.Y)))
                     {
-                        DrawEdge(g, node, edge);
+                        using var pen = new Pen(Color.Gray, 1f / (float)_scale);
+                        g.DrawLine(pen, (float)node.X, (float)node.Y, (float)edge.To.X, (float)edge.To.Y);
                     }
                 }
+            }
+
+            PathResult currentPath = GetCurrentPathResult();
+            if (currentPath != null && _highlightedPath.Count > 0)
+            {
+                DrawHighlightedPath(g, currentPath);
+                DrawWalkingPaths(g, currentPath);
             }
 
             foreach (Node node in _graph)
@@ -175,44 +169,87 @@ namespace MAP_routing.view
                     DrawNode(g, node);
                 }
             }
+
+            DrawQueryPoints(g);
         }
 
-        private void DrawHighlightedPath(Graphics g)
+        private void DrawHighlightedPath(Graphics g, PathResult currentPath)
         {
+            if (_highlightedPath.Count == 0) return;
+
             foreach (var edge in _highlightedPath)
             {
-                Node from = _graph.FirstOrDefault(n => n.Neighbors.Contains(edge));
-                if (from != null)
+                if (_edgeSourceCache.TryGetValue(edge, out Node sourceNode))
                 {
-                    using var pen = new Pen(Color.Blue, 3f / (float)_scale);
-                    g.DrawLine(pen, (float)from.X, (float)from.Y, (float)edge.To.X, (float)edge.To.Y);
+                    using var pen = new Pen(edge.Color, 3f / (float)_scale);
+                    g.DrawLine(pen, (float)sourceNode.X, (float)sourceNode.Y, (float)edge.To.X, (float)edge.To.Y);
                 }
             }
         }
 
-        private void DrawHighlightedNodes(Graphics g)
+        private void DrawWalkingPaths(Graphics g, PathResult currentPath)
         {
-            foreach (var kvp in _highlightedNodes)
+            if (currentPath == null || _highlightedPath.Count == 0) return;
+
+            using var pen = new Pen(Color.Green, 3f / (float)_scale) { DashStyle = DashStyle.Dash };
+
+            if (currentPath.source != null && currentPath.source.Id == -1)
             {
-                int nodeId = kvp.Key;
-                Color highlightColor = kvp.Value;
-
-                Node node = _graph.FirstOrDefault(n => n.Id == nodeId);
-                if (node != null)
+                var firstEdge = _highlightedPath.First();
+                if (firstEdge != null && _edgeSourceCache.TryGetValue(firstEdge, out Node firstNode))
                 {
-                    float radius = 100f / (float)_scale;
-
-                    var rect = new RectangleF(
-                        (float)node.X - radius, (float)node.Y - radius,
-                        radius * 2, radius * 2
-                    );
-
-                    using var brush = new SolidBrush(highlightColor);
-                    using var pen = new Pen(Color.Black, 1.5f / (float)_scale);
-
-                    g.FillEllipse(brush, rect);
-                    g.DrawEllipse(pen, rect);
+                    g.DrawLine(pen, (float)currentPath.source.X, (float)currentPath.source.Y,
+                            (float)firstNode.X, (float)firstNode.Y);
                 }
+            }
+
+            if (currentPath.dest != null && currentPath.dest.Id == -2)
+            {
+                var lastEdge = _highlightedPath.Last();
+                if (lastEdge != null)
+                {
+                    g.DrawLine(pen, (float)lastEdge.To.X, (float)lastEdge.To.Y,
+                            (float)currentPath.dest.X, (float)currentPath.dest.Y);
+                }
+            }
+        }
+
+        private void DrawQueryPoints(Graphics g)
+        {
+            PathResult path = GetCurrentPathResult();
+            if (path == null || path.source == null || path.dest == null)
+                return;
+
+            if (path.source.Id == -1)
+            {
+                float sourceRadius = Math.Max(10f / (float)_scale, 3f);
+                var sourceRect = new RectangleF(
+                    (float)path.source.X - sourceRadius,
+                    (float)path.source.Y - sourceRadius,
+                    sourceRadius * 2,
+                    sourceRadius * 2
+                );
+
+                using var sourceBrush = new SolidBrush(Color.Green);
+                using var sourcePen = new Pen(Color.Black, 1.5f / (float)_scale);
+                g.FillEllipse(sourceBrush, sourceRect);
+                g.DrawEllipse(sourcePen, sourceRect);
+            }
+
+            if (path.dest.Id == -2)
+            {
+                float destRadius = Math.Max(10f / (float)_scale, 3f);
+                var destRect = new RectangleF(
+                    (float)path.dest.X - destRadius,
+                    (float)path.dest.Y - destRadius,
+                    destRadius * 2,
+                    destRadius * 2
+                );
+
+                using var destBrush = new SolidBrush(Color.Red);
+                using var destPen = new Pen(Color.Black, 1.5f / (float)_scale);
+                g.FillEllipse(destBrush, destRect);
+                g.DrawEllipse(destPen, destRect);
             }
         }
 
@@ -235,15 +272,6 @@ namespace MAP_routing.view
             g.DrawEllipse(pen, rect);
         }
 
-        public void DrawEdge(Graphics g, Node from, Edge edge)
-        {
-            if (_highlightedPath.Any(e => e.To.Id == edge.To.Id && _graph.FirstOrDefault(n => n.Neighbors.Contains(e))?.Id == from.Id))
-                return;
-
-            using var pen = new Pen(Color.Gray, 1f / (float)_scale);
-            g.DrawLine(pen, (float)from.X, (float)from.Y, (float)edge.To.X, (float)edge.To.Y);
-        }
-
         private void DrawBoundingBox(Graphics g)
         {
             if (_graph.Count == 0) return;
@@ -256,6 +284,17 @@ namespace MAP_routing.view
             var rect = new RectangleF((float)minX, (float)minY, (float)(maxX - minX), (float)(maxY - minY));
             using var pen = new Pen(Color.LightGray, (float)(5f / _scale)) { DashStyle = DashStyle.Dash };
             g.DrawRectangle(pen, rect.X, rect.Y, rect.Width, rect.Height);
+        }
+
+        private PathResult GetCurrentPathResult()
+        {
+            Control parent = _panel;
+            while (parent != null && !(parent is map_vis))
+            {
+                parent = parent.Parent;
+            }
+
+            return (parent as map_vis)?.GetCurrentPathResult();
         }
 
         #endregion

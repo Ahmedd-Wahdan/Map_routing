@@ -81,7 +81,9 @@ public class Algorithm
         var destSuperNode = new Node { Id = -2, X = query.DestX, Y = query.DestY };
 
         var sourceWalkDists = new Dictionary<int, double>();
+        var sourceWalkEdges = new Dictionary<int, Edge>();
         var destWalkDists = new Dictionary<int, double>();
+        var destWalkEdges = new Dictionary<int, Edge>();
 
         foreach (var node in graph)
         {
@@ -89,16 +91,20 @@ public class Algorithm
             if (distToSource <= walk_limit_in_km)
             {
                 double walkTimeMin = (distToSource / walkingSpeedKmh) * 60.0;
-                sourceSuperNode.Neighbors.Add(new Edge { To = node, LengthKm = distToSource, SpeedKmh = walkingSpeedKmh });
+                var edge = new Edge { To = node, LengthKm = distToSource, SpeedKmh = walkingSpeedKmh, Color = Color.Green };
+                sourceSuperNode.Neighbors.Add(edge);
                 sourceWalkDists[node.Id] = distToSource;
+                sourceWalkEdges[node.Id] = edge;
             }
 
             double distToDest = Euclidean_Distance_Km(node.X, node.Y, query.DestX, query.DestY);
             if (distToDest <= walk_limit_in_km)
             {
                 double walkTimeMin = (distToDest / walkingSpeedKmh) * 60.0;
-                node.Neighbors.Add(new Edge { To = destSuperNode, LengthKm = distToDest, SpeedKmh = walkingSpeedKmh });
+                var edge = new Edge { To = destSuperNode, LengthKm = distToDest, SpeedKmh = walkingSpeedKmh, Color = Color.Green };
+                node.Neighbors.Add(edge);
                 destWalkDists[node.Id] = distToDest;
+                destWalkEdges[node.Id] = edge;
             }
         }
 
@@ -119,6 +125,12 @@ public class Algorithm
         {
             // Console.WriteLine("No path found by AStar");
             return new PathResult();
+        }
+
+        foreach (var edge in result.Edges)
+        {
+            edge.IsPath = true;
+            edge.Color = Color.Red;
         }
 
         // Filter out super node IDs (-1, -2) from the path
@@ -162,10 +174,10 @@ public class Algorithm
 
         var visited = new HashSet<int>();
 
-        var data = new Dictionary<int, (int parent, double edgeTime, double edgeDist, double totalCost)>();
+        var data = new Dictionary<int, (int parent, Edge usedEdge, double totalCost)>();
 
         queue.Enqueue((startNode, 0), 0);
-        data[startNode.Id] = (-1, 0, 0, 0);
+        data[startNode.Id] = (-1, null, 0);
 
         while (queue.Count > 0)
         {
@@ -183,21 +195,30 @@ public class Algorithm
                 var result = new PathResult();
                 result.TotalTimeMin = currentCost;
                 result.Path = new List<int>();
+                result.Edges = new List<Edge>();
                 result.VehicleDistanceKm = 0;
 
                 int nodeId = endNode.Id;
                 while (nodeId != -1 && data.ContainsKey(nodeId))
                 {
                     result.Path.Add(nodeId);
-                    var (parent, edgeTime, edgeDist, _) = data[nodeId];
-                    // Only include vehicle edges (both graph have ID >= 0)
-                    if (parent >= 0 && nodeId >= 0)
+                    var (parent, usedEdge, _) = data[nodeId];
+
+                    if (usedEdge != null)
                     {
-                        result.VehicleDistanceKm += edgeDist;
+                        result.Edges.Add(usedEdge);
+
+                        // Only include vehicle edges (both graph have ID >= 0)
+                        if (parent >= 0 && nodeId >= 0)
+                        {
+                            result.VehicleDistanceKm += usedEdge.LengthKm;
+                        }
                     }
+
                     nodeId = parent;
                 }
                 result.Path.Reverse();
+                result.Edges.Reverse();
 
                 Astar_stopWatch.Stop();
                 total_time_of_Astar += Astar_stopWatch.ElapsedMilliseconds;
@@ -218,7 +239,7 @@ public class Algorithm
 
                 if (!data.ContainsKey(edge.To.Id) || newCost < data[edge.To.Id].totalCost)
                 {
-                    data[edge.To.Id] = (currentNode.Id, edge.TimeMin, edge.LengthKm, newCost);
+                    data[edge.To.Id] = (currentNode.Id, edge, newCost);
                     queue.Enqueue((edge.To, newCost), priority);
                 }
             }
