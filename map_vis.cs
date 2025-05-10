@@ -211,11 +211,13 @@ namespace MAP_routing
 
                                 writer.WriteLine();
                             }
+                            double total_time = Algorithm.TotalTimeWithIO + MapRouting.total_time_of_IO;
 
-                            writer.WriteLine("1 ms");
+                            writer.WriteLine($"{(int)Algorithm.TotalTimeWithIO} ms");
                             writer.WriteLine();
-                            writer.WriteLine("6 ms");
+                            writer.WriteLine($"{(int)total_time} ms");
                         }
+                        Algorithm.TotalTimeWithIO = MapRouting.total_time_of_IO = 0;
                         MessageBox.Show("Results saved successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
                     catch (Exception ex)

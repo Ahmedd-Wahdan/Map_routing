@@ -1,17 +1,17 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using MAP_routing.model;
 
 public class Algorithm
 {
-    double total_time_including_IO = 0;
-    static int total_time_of_min_path_finding = 0;
-    static double total_time_of_Astar = 0;
-    static double total_t_min = 0;
+    public static double TotalTimeWithIO = 0;
+
     static double maxSpeedKmh;
-    static List<Query> queries;
+    static List<Query> Queries;
     public List<Node> graph;
 
-    public Algorithm(List<Node> _graph, double _maxSpeedKmh,List<Query>_queries)
+    public Algorithm(List<Node> _graph, double _maxSpeedKmh, List<Query> _queries)
     {
         if (_graph == null || _graph.Count == 0)
         {
@@ -19,63 +19,32 @@ public class Algorithm
         }
 
         graph = _graph;
-
         maxSpeedKmh = _maxSpeedKmh;
-
-            queries = _queries;
+        Queries = _queries;
     }
 
-    public List<PathResult> ProcessQueries(string outputFile)
+    public List<PathResult> ProcessQueries()
     {
-            
+        var results = new List<PathResult>();
 
         var swTotal = Stopwatch.StartNew();
-        var results = new List<PathResult>();
-        long totalQueryTimeMs = 0;
 
-        foreach (var query in queries)
+        foreach (var query in Queries)
         {
-            var swQuery = Stopwatch.StartNew();
             var result = Min_Path_Finding(query);
-            
-            swQuery.Stop();
-            //Console.WriteLine(" time =\t " + swQuery.ElapsedMilliseconds);
-
-            totalQueryTimeMs += swQuery.ElapsedMilliseconds;
             results.Add(result);
         }
 
         swTotal.Stop();
-        long totalTimeMs = swTotal.ElapsedMilliseconds;
-
-
-        // Write output
-        using (var writer = new StreamWriter(outputFile))
-        {
-            foreach (var result in results)
-            {
-                writer.WriteLine(string.Join(" ", result.Path));
-                writer.WriteLine($"{result.TotalTimeMin:F2} mins");
-                writer.WriteLine($"{result.TotalDistanceKm:F2} km");
-                writer.WriteLine($"{result.WalkingDistanceKm:F2} km");
-                writer.WriteLine($"{result.VehicleDistanceKm:F2} km");
-                writer.WriteLine();
-            }
-                
-            writer.WriteLine($"{totalTimeMs}ms");
-            writer.WriteLine($"");
-            writer.WriteLine($"{total_time_including_IO}ms");
-        }
-        Console.WriteLine(" time =\t " + total_time_including_IO);
+        TotalTimeWithIO += swTotal.ElapsedMilliseconds;
 
         return results;
     }
 
     private PathResult Min_Path_Finding(Query query)
     {
-        Stopwatch s = Stopwatch.StartNew();
         const double walkingSpeedKmh = 5.0;
-        double walk_limit_in_km = query.Rmeters / 1000;
+        double WalkLimitKM = query.Rmeters / 1000;
 
         var sourceSuperNode = new Node { Id = -1, X = query.SourceX, Y = query.SourceY };
         var destSuperNode = new Node { Id = -2, X = query.DestX, Y = query.DestY };
@@ -85,40 +54,73 @@ public class Algorithm
         var destWalkDists = new Dictionary<int, double>();
         var destWalkEdges = new Dictionary<int, Edge>();
 
+        List<(int, int)> CandidateIndex = new List<(int, int)>();
+
+        // Define bounding boxes for source and destination
+        double sourceXMin = query.SourceX - WalkLimitKM;
+        double sourceXMax = query.SourceX + WalkLimitKM;
+        double sourceYMin = query.SourceY - WalkLimitKM;
+        double sourceYMax = query.SourceY + WalkLimitKM;
+
+        double destXMin = query.DestX - WalkLimitKM;
+        double destXMax = query.DestX + WalkLimitKM;
+        double destYMin = query.DestY - WalkLimitKM;
+        double destYMax = query.DestY + WalkLimitKM;
+
         foreach (var node in graph)
         {
-            double distToSource = Euclidean_Distance_Km(node.X, node.Y, query.SourceX, query.SourceY);
-            if (distToSource <= walk_limit_in_km)
+            // Check if node is within source bounding box
+            if (node.X >= sourceXMin && node.X <= sourceXMax &&
+                node.Y >= sourceYMin && node.Y <= sourceYMax)
             {
-                double walkTimeMin = (distToSource / walkingSpeedKmh) * 60.0;
-                var edge = new Edge { To = node, LengthKm = distToSource, SpeedKmh = walkingSpeedKmh, Color = Color.Green };
-                sourceSuperNode.Neighbors.Add(edge);
-                sourceWalkDists[node.Id] = distToSource;
-                sourceWalkEdges[node.Id] = edge;
+                double distToSource = Euclidean_Distance_Km(node.X, node.Y, query.SourceX, query.SourceY);
+                if (distToSource <= WalkLimitKM)
+                {
+                    double walkTimeMin = (distToSource / walkingSpeedKmh) * 60.0;
+                    var edge = new Edge { To = node, LengthKm = distToSource, SpeedKmh = walkingSpeedKmh, Color = Color.Green };
+                    sourceSuperNode.Neighbors.Add(edge);
+                    sourceWalkDists[node.Id] = distToSource;
+                    sourceWalkEdges[node.Id] = edge;
+
+                    CandidateIndex.Add((node.Id, 1));
+                }
             }
 
-            double distToDest = Euclidean_Distance_Km(node.X, node.Y, query.DestX, query.DestY);
-            if (distToDest <= walk_limit_in_km)
+            // Check if node is within destination bounding box
+            if (node.X >= destXMin && node.X <= destXMax &&
+                node.Y >= destYMin && node.Y <= destYMax)
             {
-                double walkTimeMin = (distToDest / walkingSpeedKmh) * 60.0;
-                var edge = new Edge { To = destSuperNode, LengthKm = distToDest, SpeedKmh = walkingSpeedKmh, Color = Color.Green };
-                node.Neighbors.Add(edge);
-                destWalkDists[node.Id] = distToDest;
-                destWalkEdges[node.Id] = edge;
+                double distToDest = Euclidean_Distance_Km(node.X, node.Y, query.DestX, query.DestY);
+                if (distToDest <= WalkLimitKM)
+                {
+                    double walkTimeMin = (distToDest / walkingSpeedKmh) * 60.0;
+                    var edge = new Edge { To = destSuperNode, LengthKm = distToDest, SpeedKmh = walkingSpeedKmh, Color = Color.Green };
+                    node.Neighbors.Add(edge);
+                    destWalkDists[node.Id] = distToDest;
+                    destWalkEdges[node.Id] = edge;
+                    CandidateIndex.Add((node.Id, 0));
+                }
             }
         }
-
 
         PathResult result = AStar(sourceSuperNode, destSuperNode);//AStar(sourceSuperNode, destSuperNode);
 
         result.source = sourceSuperNode;
         result.dest = destSuperNode;
+
         //swQuery.Stop();
         //Console.WriteLine(" time =\t " + swQuery.ElapsedMilliseconds);
         // Clean up: Remove temporary edges to destination super node
-        foreach (var node in graph)
+        foreach ((int id, int type) in CandidateIndex)
         {
-            node.Neighbors.RemoveAll(edge => edge.To.Id == destSuperNode.Id);
+            if (type == 1)
+            {
+                graph[id].Neighbors.Remove(sourceWalkEdges[id]);
+            }
+            if (type == 0)
+            {
+                graph[id].Neighbors.Remove(destWalkEdges[id]);
+            }
         }
 
         if (result == null || result.Path.Count == 0)
@@ -127,57 +129,47 @@ public class Algorithm
             return new PathResult();
         }
 
-        foreach (var edge in result.Edges)
-        {
-            edge.IsPath = true;
-            edge.Color = Color.Red;
-        }
+        //foreach (var edge in result.Edges)
+        //{
+        //    edge.IsPath = true;
+        //    edge.Color = Color.Red;
+        //}
 
         // Filter out super node IDs (-1, -2) from the path
-        var filteredPath = result.Path.Where(id => id >= 0).ToList();
+        //var filteredPath = result.Path.Where(id => id >= 0).ToList();
+
+        result.Path.RemoveAt(result.Path.Count - 1);
 
         // Calculate walking distances
         double sourceWalkDist = 0;
         double destWalkDist = 0;
 
-        if (filteredPath.Count > 0)
+        if (result.Path.Count > 0)
         {
-            int firstNodeId = filteredPath[0];
-            int lastNodeId = filteredPath[filteredPath.Count - 1];
-            sourceWalkDist = sourceWalkDists.ContainsKey(firstNodeId) ? sourceWalkDists[firstNodeId] : 0;
-            destWalkDist = destWalkDists.ContainsKey(lastNodeId) ? destWalkDists[lastNodeId] : 0;
+            int firstNodeId = result.Path[0];
+            int lastNodeId = result.Path[result.Path.Count - 1];
+            sourceWalkDist = sourceWalkDists[firstNodeId];
+            destWalkDist = destWalkDists[lastNodeId];
         }
 
-        // Set distances
-        result.Path = filteredPath;
         result.WalkingDistanceKm = sourceWalkDist + destWalkDist;
         result.TotalDistanceKm = result.WalkingDistanceKm + result.VehicleDistanceKm;
-        s.Stop();
-        total_t_min += s.ElapsedMilliseconds;
-        if (total_time_of_min_path_finding % 50 == 0)
-            Console.WriteLine("time of index num :\t" + (total_time_of_min_path_finding + 1) + "\t equal :\t" + total_t_min);
-        total_time_of_min_path_finding++;
         return result;
     }
 
-
     private PathResult AStar(Node startNode, Node endNode)
     {
-        var Astar_stopWatch = Stopwatch.StartNew();
-
         if (startNode.Id == endNode.Id)
         {
             return new PathResult { Path = new List<int> { startNode.Id }, TotalTimeMin = 0, VehicleDistanceKm = 0 };
         }
 
         var queue = new PriorityQueue<(Node node, double cost), double>();
-
         var visited = new HashSet<int>();
-
-        var data = new Dictionary<int, (int parent, Edge usedEdge, double totalCost)>();
+        var data = new Dictionary<int, (int parent, Edge usedEdge, double totalCost, double vehicleDistance)>();
 
         queue.Enqueue((startNode, 0), 0);
-        data[startNode.Id] = (-1, null, 0);
+        data[startNode.Id] = (-1, null, 0, 0);
 
         while (queue.Count > 0)
         {
@@ -196,32 +188,23 @@ public class Algorithm
                 result.TotalTimeMin = currentCost;
                 result.Path = new List<int>();
                 result.Edges = new List<Edge>();
-                result.VehicleDistanceKm = 0;
+                result.VehicleDistanceKm = data[currentNode.Id].vehicleDistance;
 
                 int nodeId = endNode.Id;
                 while (nodeId != -1 && data.ContainsKey(nodeId))
                 {
                     result.Path.Add(nodeId);
-                    var (parent, usedEdge, _) = data[nodeId];
+                    var (parent, usedEdge, _, _) = data[nodeId];
 
                     if (usedEdge != null)
                     {
                         result.Edges.Add(usedEdge);
-
-                        // Only include vehicle edges (both graph have ID >= 0)
-                        if (parent >= 0 && nodeId >= 0)
-                        {
-                            result.VehicleDistanceKm += usedEdge.LengthKm;
-                        }
                     }
 
                     nodeId = parent;
                 }
                 result.Path.Reverse();
                 result.Edges.Reverse();
-
-                Astar_stopWatch.Stop();
-                total_time_of_Astar += Astar_stopWatch.ElapsedMilliseconds;
 
                 return result;
             }
@@ -234,21 +217,26 @@ public class Algorithm
                 }
 
                 double newCost = currentCost + edge.TimeMin;
+                double newVehicleDistance = data[currentNode.Id].vehicleDistance;
+                if (currentNode.Id >= 0 && edge.To.Id >= 0)
+                {
+                    newVehicleDistance += edge.LengthKm;
+                }
+
                 double heuristic = Calculate_Node_Weight_For_AStar(edge.To, endNode);
                 double priority = newCost + heuristic;
 
                 if (!data.ContainsKey(edge.To.Id) || newCost < data[edge.To.Id].totalCost)
                 {
-                    data[edge.To.Id] = (currentNode.Id, edge, newCost);
+                    data[edge.To.Id] = (currentNode.Id, edge, newCost, newVehicleDistance);
                     queue.Enqueue((edge.To, newCost), priority);
                 }
             }
         }
-        Astar_stopWatch.Stop();
-        total_time_of_Astar += Astar_stopWatch.ElapsedMilliseconds;
 
         return null;
     }
+
     public double Euclidean_Distance_Km(double x1, double y1, double x2, double y2)
     {
         double x = x1 - x2;
@@ -263,14 +251,5 @@ public class Algorithm
     {
         double Distance = Euclidean_Distance_Km(Source.X, Source.Y, Dest.X, Dest.Y);
         return (Distance / maxSpeedKmh) * 60;
-    }
-    public static double ret_of_Astar_time()
-    {
-        return total_time_of_Astar;
-    }
-
-    public static double ret_of_min_path_time()
-    {
-        return total_time_of_min_path_finding;
     }
 }

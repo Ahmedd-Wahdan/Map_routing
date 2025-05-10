@@ -87,21 +87,21 @@ namespace MAP_routing
                 progressBar.Style = ProgressBarStyle.Marquee;
 
                 Application.DoEvents();
-                
+
 
                 lblStatus.Text = "Loading queries data...";
                 Application.DoEvents();
                 ///////////////////////////////////////////////////////////
                 map_route = new MapRouting(selectedMapFilePath);
                 queries = Query.ReadFromFile(selectedQueriesFilePath);
-                algorithm = new Algorithm(map_route.graph, map_route.maxSpeedKmh,queries);
+                algorithm = new Algorithm(map_route.graph, map_route.maxSpeedKmh, queries);
                 //////////////////////////////////////////////////////////
-                
+
 
                 lblStatus.Text = "Processing queries...";
                 Application.DoEvents();
                 //////////////////////////////////////////////////////////////
-                List<PathResult> PRs = algorithm.ProcessQueries("C:\\Users\\2hmed\\Desktop\\output.txt");
+                List<PathResult> PRs = algorithm.ProcessQueries();
                 //////////////////////////////////////////////////////////////
                 lblStatus.Text = "Opening visualization...";
                 progressBar.Style = ProgressBarStyle.Continuous;

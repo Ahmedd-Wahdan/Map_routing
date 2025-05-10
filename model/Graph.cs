@@ -46,11 +46,11 @@ namespace MAP_routing.model
             Rmeters = rmeters;
         }
 
-        
+
 
         public static List<Query> ReadFromFile(string filePath)
         {
-
+            Stopwatch processquery_stopWatch = Stopwatch.StartNew();
             List<Query> Queries = new List<Query>();
 
             string[] lines;
@@ -89,11 +89,14 @@ namespace MAP_routing.model
             if (Queries.Count == 0)
                 throw new FormatException("No queries found in the file");
 
-            
+            processquery_stopWatch.Stop();
+            MapRouting.total_time_of_IO += processquery_stopWatch.ElapsedMilliseconds;
+
             return Queries;
         }
 
     }
+
 
     public class PathResult
     {
@@ -112,6 +115,7 @@ namespace MAP_routing.model
         public List<Node> graph = new List<Node>();
         public List<Edge> edges = new List<Edge>();
         public double maxSpeedKmh = 0.0; //initial value it gets changed in the readmapfile
+        public static double total_time_of_IO = 0;
 
         public MapRouting(string mapFile)
         {
@@ -126,6 +130,8 @@ namespace MAP_routing.model
 
         private void ReadMapFile(string mapFile)
         {
+            Stopwatch IO_stopwatch = Stopwatch.StartNew();
+
             var lines = File.ReadAllLines(mapFile);
             int lineIndex = 0;
 
@@ -169,6 +175,8 @@ namespace MAP_routing.model
                 edges.Add(edge2);
 
             }
+            IO_stopwatch.Stop();
+            total_time_of_IO += IO_stopwatch.ElapsedMilliseconds;
         }
 
 
