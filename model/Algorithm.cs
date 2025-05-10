@@ -54,7 +54,8 @@ public class Algorithm
         var destWalkDists = new Dictionary<int, double>();
         var destWalkEdges = new Dictionary<int, Edge>();
 
-        List<(int, int)> CandidateIndex = new List<(int, int)>();
+        var sourceCandidates = new HashSet<int>();
+        var destCandidates = new HashSet<int>();
 
         // Define bounding boxes for source and destination
         double sourceXMin = query.SourceX - WalkLimitKM;
@@ -73,16 +74,25 @@ public class Algorithm
             if (node.X >= sourceXMin && node.X <= sourceXMax &&
                 node.Y >= sourceYMin && node.Y <= sourceYMax)
             {
-                double distToSource = Euclidean_Distance_Km(node.X, node.Y, query.SourceX, query.SourceY);
-                if (distToSource <= WalkLimitKM)
+                double sx = node.X - query.SourceX;
+                double sy = node.Y - query.SourceY;
+
+                sx *= sx;
+                sy *= sy;
+
+                double distToSource = sx + sy;
+
+                if (distToSource <= WalkLimitKM * WalkLimitKM)
                 {
+                    distToSource = Math.Sqrt(distToSource);
+
                     double walkTimeMin = (distToSource / walkingSpeedKmh) * 60.0;
                     var edge = new Edge { To = node, LengthKm = distToSource, SpeedKmh = walkingSpeedKmh, Color = Color.Green };
                     sourceSuperNode.Neighbors.Add(edge);
                     sourceWalkDists[node.Id] = distToSource;
                     sourceWalkEdges[node.Id] = edge;
 
-                    CandidateIndex.Add((node.Id, 1));
+                    sourceCandidates.Add(node.Id);
                 }
             }
 
@@ -90,15 +100,23 @@ public class Algorithm
             if (node.X >= destXMin && node.X <= destXMax &&
                 node.Y >= destYMin && node.Y <= destYMax)
             {
-                double distToDest = Euclidean_Distance_Km(node.X, node.Y, query.DestX, query.DestY);
-                if (distToDest <= WalkLimitKM)
+                double dx = node.X - query.DestX;
+                double dy = node.Y - query.DestY;
+
+                dx *= dx;
+                dy *= dy;
+
+                double distToDest = dx + dy;
+                if (distToDest <= WalkLimitKM * WalkLimitKM)
                 {
+                    distToDest = Math.Sqrt(distToDest);
+
                     double walkTimeMin = (distToDest / walkingSpeedKmh) * 60.0;
                     var edge = new Edge { To = destSuperNode, LengthKm = distToDest, SpeedKmh = walkingSpeedKmh, Color = Color.Green };
                     node.Neighbors.Add(edge);
                     destWalkDists[node.Id] = distToDest;
                     destWalkEdges[node.Id] = edge;
-                    CandidateIndex.Add((node.Id, 0));
+                    destCandidates.Add(node.Id);
                 }
             }
         }
@@ -111,16 +129,13 @@ public class Algorithm
         //swQuery.Stop();
         //Console.WriteLine(" time =\t " + swQuery.ElapsedMilliseconds);
         // Clean up: Remove temporary edges to destination super node
-        foreach ((int id, int type) in CandidateIndex)
+        foreach (int id in sourceCandidates)
         {
-            if (type == 1)
-            {
-                graph[id].Neighbors.Remove(sourceWalkEdges[id]);
-            }
-            if (type == 0)
-            {
-                graph[id].Neighbors.Remove(destWalkEdges[id]);
-            }
+            graph[id].Neighbors.Remove(sourceWalkEdges[id]);
+        }
+        foreach (int id in destCandidates)
+        {
+            graph[id].Neighbors.Remove(destWalkEdges[id]);
         }
 
         if (result == null || result.Path.Count == 0)
