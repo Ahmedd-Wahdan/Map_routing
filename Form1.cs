@@ -147,11 +147,12 @@ namespace MAP_routing
 
         private void ResizeControls()
         {
-            int panelWidth = panel2.Width;
+            int panelWidth = panel2.ClientSize.Width;
+
+            int controlWidth = Math.Min(355, panelWidth - 40);
 
             int centerX = panelWidth / 2;
-            int controlWidth = 355;
-            int leftMargin = centerX - (controlWidth / 2);
+            int leftMargin = Math.Max(20, centerX - (controlWidth / 2));
 
             lblMapFilePath.Location = new Point(leftMargin, lblMapFilePath.Location.Y);
             lblMapFilePath.Width = controlWidth;
@@ -172,13 +173,21 @@ namespace MAP_routing
             progressBar.Location = new Point(leftMargin, progressBar.Location.Y);
             progressBar.Width = controlWidth;
 
-            int btnVisWidth = 158;
-            int btnExitWidth = 132;
-            int totalBtnWidth = btnVisWidth + btnExitWidth + 10;
-            int btnLeftMargin = centerX - (totalBtnWidth / 2);
+            int btnVisWidth = Math.Min(158, (controlWidth - 10) / 2);
+            int btnExitWidth = Math.Min(132, (controlWidth - 10) / 2);
+            int gap = 10;
+            int totalBtnWidth = btnVisWidth + gap + btnExitWidth;
 
-            btnVisualize.Location = new Point(btnLeftMargin, btnVisualize.Location.Y);
-            btnExit.Location = new Point(btnLeftMargin + btnVisWidth + 10, btnExit.Location.Y);
+            int btnGroupStartX = centerX - (totalBtnWidth / 2);
+
+            btnGroupStartX = Math.Max(20, btnGroupStartX);
+
+            int buttonY = btnVisualize.Location.Y;
+            btnVisualize.Location = new Point(btnGroupStartX, buttonY);
+            btnVisualize.Width = btnVisWidth;
+
+            btnExit.Location = new Point(btnGroupStartX + btnVisWidth + gap, buttonY);
+            btnExit.Width = btnExitWidth;
 
             lblTitle.Left = (panel1.Width - lblTitle.Width) / 2;
         }

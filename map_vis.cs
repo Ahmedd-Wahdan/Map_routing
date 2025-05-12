@@ -10,24 +10,7 @@ namespace MAP_routing
         private List<PathResult> path_results;
 
         private int _currentQueryIndex = -1;
-
-        public PathResult GetCurrentPathResult()
-        {
-            if (_currentQueryIndex >= 0 && _currentQueryIndex < path_results.Count)
-            {
-                return path_results[_currentQueryIndex];
-            }
-            return null;
-        }
-
-        private void EnableDoubleBuffering(Control control)
-        {
-            typeof(Control).InvokeMember("DoubleBuffered",
-                System.Reflection.BindingFlags.SetProperty |
-                System.Reflection.BindingFlags.Instance |
-                System.Reflection.BindingFlags.NonPublic,
-                null, control, new object[] { true });
-        }
+        private int _currentEdgeIndex = -1;
 
         public map_vis(List<Node> _graph, List<Edge> _edges, List<PathResult> _path_res)
         {
@@ -49,6 +32,25 @@ namespace MAP_routing
             _graphRenderer = new graph_renderer(graph, edges, panel1);
 
             InitializeQueryControls();
+            InitializeEdgeControls();
+        }
+
+        public PathResult GetCurrentPathResult()
+        {
+            if (_currentQueryIndex >= 0 && _currentQueryIndex < path_results.Count)
+            {
+                return path_results[_currentQueryIndex];
+            }
+            return null;
+        }
+
+        private void EnableDoubleBuffering(Control control)
+        {
+            typeof(Control).InvokeMember("DoubleBuffered",
+                System.Reflection.BindingFlags.SetProperty |
+                System.Reflection.BindingFlags.Instance |
+                System.Reflection.BindingFlags.NonPublic,
+                null, control, new object[] { true });
         }
 
         private void InitializeQueryControls()
@@ -68,6 +70,18 @@ namespace MAP_routing
                 lblQueryCount.Text = "Queries found: 0";
                 btnNextQuery.Enabled = false;
             }
+        }
+
+        private void InitializeEdgeControls()
+        {
+            btnPrevEdge.Enabled = false;
+            lblCurrentEdgeTitle.Text = "Current Edge: -";
+
+            if (path_results != null && path_results.Count > 0)
+            {
+                btnNextEdge.Enabled = true;
+            }
+
         }
 
         private void DisplayCurrentQuery()
@@ -94,6 +108,10 @@ namespace MAP_routing
                     if (path.Path != null && path.Path.Count > 0)
                     {
                         HighlightQueryPath(path);
+
+                        // Reset edge navigation when changing query
+                        _currentEdgeIndex = -1;
+                        UpdateEdgeNavigation();
                     }
                     else
                     {
@@ -140,6 +158,73 @@ namespace MAP_routing
             if (path != null && path.Edges.Count > 0)
             {
                 _graphRenderer.HighlightPath(path, Color.Blue);
+
+                // Enable edge navigation if there are edges in the path
+                btnNextEdge.Enabled = path.Edges.Count > 0;
+            }
+
+            _graphRenderer.Redraw();
+        }
+
+        private void UpdateEdgeNavigation()
+        {
+            PathResult currentPath = GetCurrentPathResult();
+
+            if (currentPath == null || currentPath.Edges == null || currentPath.Edges.Count == 0)
+            {
+                btnPrevEdge.Enabled = false;
+                btnNextEdge.Enabled = false;
+                lblCurrentEdgeTitle.Text = "Current Edge: -";
+                return;
+            }
+
+            // If we have a path but no edge selected, enable only next button
+            if (_currentEdgeIndex == -1)
+            {
+                btnPrevEdge.Enabled = false;
+                btnNextEdge.Enabled = currentPath.Edges.Count > 0;
+                lblCurrentEdgeTitle.Text = $"Current Edge: -/{currentPath.Edges.Count}";
+                return;
+            }
+
+            // Both buttons always enabled for cycling navigation, as long as we have edges
+            btnPrevEdge.Enabled = true;
+            btnNextEdge.Enabled = true;
+
+            // Update edge information
+            if (_currentEdgeIndex >= 0 && _currentEdgeIndex < currentPath.Edges.Count)
+            {
+                Edge currentEdge = currentPath.Edges[_currentEdgeIndex];
+                lblCurrentEdgeTitle.Text = $"Current Edge: {_currentEdgeIndex + 1}/{currentPath.Edges.Count}";
+
+
+
+                // Highlight the current edge
+                HighlightCurrentEdge(currentEdge);
+            }
+        }
+
+        private void HighlightCurrentEdge(Edge edge)
+        {
+            // Clear previous highlights and highlight the current path
+            PathResult currentPath = GetCurrentPathResult();
+            HighlightQueryPath(currentPath);
+
+            // Add specific highlighting for the current edge
+            if (edge != null)
+            {
+                // First make sure the edge source is cached
+                foreach (var node in graph)
+                {
+                    foreach (var e in node.Neighbors)
+                    {
+                        if (e == edge)
+                        {
+                            _graphRenderer.HighlightEdge(edge, Color.Green, edge.LengthKm.ToString("F2") + " km");
+                            break;
+                        }
+                    }
+                }
             }
 
             _graphRenderer.Redraw();
@@ -163,6 +248,42 @@ namespace MAP_routing
             }
         }
 
+        private void btnPrevEdge_Click(object sender, EventArgs e)
+        {
+            PathResult currentPath = GetCurrentPathResult();
+            if (currentPath != null && currentPath.Edges != null && _currentEdgeIndex > -1)
+            {
+                _currentEdgeIndex--;
+                UpdateEdgeNavigation();
+
+                if (_currentEdgeIndex == -1)
+                {
+                    lblCurrentEdgeTitle.Text = $"Current Edge: -/{currentPath.Edges.Count}";
+
+                    HighlightQueryPath(currentPath);
+                    _graphRenderer.Redraw();
+                }
+            }
+        }
+
+        private void btnNextEdge_Click(object sender, EventArgs e)
+        {
+            PathResult currentPath = GetCurrentPathResult();
+            if (currentPath != null && currentPath.Edges != null && currentPath.Edges.Count > 0)
+            {
+                if (_currentEdgeIndex >= currentPath.Edges.Count - 1)
+                {
+                    _currentEdgeIndex = 0;
+                }
+                else
+                {
+                    _currentEdgeIndex++;
+                }
+
+                UpdateEdgeNavigation();
+            }
+        }
+
         private void btnSaveAllResults_Click(object sender, EventArgs e)
         {
             SaveAllResults();
@@ -178,7 +299,7 @@ namespace MAP_routing
 
             using (SaveFileDialog saveFileDialog = new SaveFileDialog())
             {
-                saveFileDialog.Filter = "Text Files (*.txt)|*.txt|All Files (*.*)|*.*";
+                saveFileDialog.Filter = "Text Files (.txt)|.txt|All Files (.)|.";
                 saveFileDialog.Title = "Save Query Results";
 
                 if (saveFileDialog.ShowDialog() == DialogResult.OK)
@@ -227,5 +348,7 @@ namespace MAP_routing
                 }
             }
         }
+
+
     }
 }
