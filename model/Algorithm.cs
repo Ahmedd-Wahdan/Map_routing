@@ -319,7 +319,7 @@ public class Algorithm
     public List<PathResult> ProcessQueries()
     {
         // For small query sets, use sequential processing
-        if (Queries.Count <= 5)
+        if (Queries.Count <= 10)
         {
             return ProcessQueriesSequntial();
         }
@@ -349,6 +349,7 @@ public class Algorithm
     {
         const double walkingSpeedKmh = 5.0;
         double WalkLimitKM = query.Rmeters / 1000;
+        double WalkLimitKMSquared = WalkLimitKM * WalkLimitKM;
 
         // Create super nodes for source and destination
         var sourceSuperNode = new Node { Id = -1, X = query.SourceX, Y = query.SourceY, Neighbors = new List<Edge>() };
@@ -359,7 +360,7 @@ public class Algorithm
         var destWalkDists = new Dictionary<int, double>();
 
         // Thread-local temporary edges for destination connections
-        var tempEdges = new Dictionary<int, List<Edge>>();
+        var tempEdges = new Dictionary<int, Edge>();
 
         // Define bounding boxes for source and destination
         double sourceXMin = query.SourceX - WalkLimitKM;
@@ -381,10 +382,11 @@ public class Algorithm
             {
                 double sx = node.X - query.SourceX;
                 double sy = node.Y - query.SourceY;
-                double distToSource = Math.Sqrt(sx * sx + sy * sy);
+                double distSquared = sx * sx + sy * sy;
 
-                if (distToSource <= WalkLimitKM)
+                if (distSquared <= WalkLimitKMSquared)
                 {
+                    double distToSource = Math.Sqrt(distSquared);
                     var edge = new Edge
                     {
                         To = node,
@@ -403,10 +405,11 @@ public class Algorithm
             {
                 double dx = node.X - query.DestX;
                 double dy = node.Y - query.DestY;
-                double distToDest = Math.Sqrt(dx * dx + dy * dy);
+                double distSquared = dx * dx + dy * dy;
 
-                if (distToDest <= WalkLimitKM)
+                if (distSquared <= WalkLimitKMSquared)
                 {
+                    double distToDest = Math.Sqrt(distSquared);
                     var edge = new Edge
                     {
                         To = destSuperNode,
@@ -414,9 +417,7 @@ public class Algorithm
                         SpeedKmh = walkingSpeedKmh,
                         Color = Color.Green
                     };
-                    if (!tempEdges.ContainsKey(node.Id))
-                        tempEdges[node.Id] = new List<Edge>();
-                    tempEdges[node.Id].Add(edge);
+                    tempEdges[node.Id] = edge;
                     destWalkDists[node.Id] = distToDest;
                 }
             }
@@ -465,7 +466,7 @@ public class Algorithm
         return result;
     }
 
-    private PathResult AStar(Node startNode, Node endNode, Dictionary<int, List<Edge>> tempEdges)
+    private PathResult AStar(Node startNode, Node endNode, Dictionary<int, Edge> tempEdges)
     {
         if (startNode.Id == endNode.Id)
         {
@@ -540,14 +541,12 @@ public class Algorithm
                 }
             }
 
-            // Process temporary edges for this node
+            // Process temporary edge for this node
             if (tempEdges.ContainsKey(currentNode.Id))
             {
-                foreach (var edge in tempEdges[currentNode.Id])
+                var edge = tempEdges[currentNode.Id];
+                if (!visited.Contains(edge.To.Id))
                 {
-                    if (visited.Contains(edge.To.Id))
-                        continue;
-
                     double newCost = currentCost + edge.TimeMin;
                     double newVehicleDistance = data[currentNode.Id].vehicleDistance;
                     // No vehicle distance for walking edges to destSuperNode
@@ -566,8 +565,8 @@ public class Algorithm
 
         return null;
     }
-
-    public double Euclidean_Distance_Km(double x1, double y1, double x2, double y2)
+   
+    private double Euclidean_Distance_Km(double x1, double y1, double x2, double y2)
     {
         double x = x1 - x2;
         double y = y1 - y2;
@@ -577,7 +576,7 @@ public class Algorithm
         return Math.Sqrt(x + y);
     }
 
-    public double Calculate_Node_Weight_For_AStar(Node Source, Node Dest)
+    private double Calculate_Node_Weight_For_AStar(Node Source, Node Dest)
     {
         double Distance = Euclidean_Distance_Km(Source.X, Source.Y, Dest.X, Dest.Y);
         return (Distance / maxSpeedKmh) * 60;
