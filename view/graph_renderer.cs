@@ -191,26 +191,26 @@ namespace MAP_routing.view
         {
             if (currentPath == null || _highlightedPath.Count == 0) return;
 
-            using var pen = new Pen(Color.Green, 3f / (float)_scale) { DashStyle = DashStyle.Dash };
+            using var greenPen = new Pen(Color.Green, 3f / (float)_scale) { DashStyle = DashStyle.Dash };
+            using var redPen = new Pen(Color.Red, 3f / (float)_scale) { DashStyle = DashStyle.Dash };
 
-            if (currentPath.source != null && currentPath.source.Id == -1)
+            if (currentPath.source != null && currentPath.source.Id == -1 && _highlightedPath.Any())
             {
-                var firstEdge = _highlightedPath.First();
-                if (firstEdge != null && _edgeSourceCache.TryGetValue(firstEdge, out Node firstNode))
-                {
-                    g.DrawLine(pen, (float)currentPath.source.X, (float)currentPath.source.Y,
-                            (float)firstNode.X, (float)firstNode.Y);
-                }
+                Node firstNode = _highlightedPath.First().To;
+                
+                g.DrawLine(greenPen,
+                (float)currentPath.source.X, (float)currentPath.source.Y,
+                (float)firstNode.X, (float)firstNode.Y);
+                
             }
 
-            if (currentPath.dest != null && currentPath.dest.Id == -2)
+            if (currentPath.dest != null && currentPath.dest.Id == -2 && _highlightedPath.Any())
             {
-                var lastEdge = _highlightedPath.Last();
-                if (lastEdge != null)
-                {
-                    g.DrawLine(pen, (float)lastEdge.To.X, (float)lastEdge.To.Y,
-                            (float)currentPath.dest.X, (float)currentPath.dest.Y);
-                }
+                var lastEdge = _highlightedPath[_highlightedPath.Count-2];
+
+                g.DrawLine(redPen,
+                    (float)lastEdge.To.X, (float)lastEdge.To.Y,
+                    (float)currentPath.dest.X, (float)currentPath.dest.Y);
             }
         }
 
