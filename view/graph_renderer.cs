@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Linq;
-using System.Windows.Forms;
-using System.Xml.Linq;
+﻿using System.Drawing.Drawing2D;
 using MAP_routing.model;
 
 namespace MAP_routing.view
@@ -21,7 +15,6 @@ namespace MAP_routing.view
         private PointF _viewCenter = new PointF(0, 0);
         private Dictionary<int, Color> _highlightedNodes = new Dictionary<int, Color>();
         private List<Edge> _highlightedPath = new List<Edge>();
-        private Dictionary<Edge, Node> _edgeSourceCache = new Dictionary<Edge, Node>();
         private Dictionary<Edge, Tuple<Color, string>> _highlightedEdges = new Dictionary<Edge, Tuple<Color, string>>();
 
         public graph_renderer(List<Node> graph, List<Edge> edges, Panel panel)
@@ -75,16 +68,6 @@ namespace MAP_routing.view
                 return;
 
             _highlightedPath.Clear();
-            _edgeSourceCache.Clear();
-
-            // Always rebuild the edge source cache with all edges
-            foreach (var node in _graph)
-            {
-                foreach (var edge in node.Neighbors)
-                {
-                    _edgeSourceCache[edge] = node;
-                }
-            }
 
             foreach (var edge in path.Edges)
             {
@@ -97,14 +80,14 @@ namespace MAP_routing.view
         public void ClearHighlightedPath()
         {
             _highlightedPath.Clear();
-            _edgeSourceCache.Clear();
-            _highlightedEdges.Clear(); // Clear single edge highlights as well
+            _highlightedEdges.Clear();
         }
 
         public void HighlightEdge(Edge edge, Color color, string label)
         {
             if (edge == null) return;
 
+            _highlightedEdges.Clear();
             _highlightedEdges[edge] = new Tuple<Color, string>(color, label);
         }
 
@@ -153,18 +136,20 @@ namespace MAP_routing.view
         {
             RectangleF visibleBounds = GetVisibleWorldBounds();
 
-            // Draw all edges (non-highlighted)
+            using var pen = new Pen(Color.Gray, 1f / (float)_scale);
             foreach (var node in _graph)
             {
                 foreach (var edge in node.Neighbors)
                 {
-                    if (!_highlightedPath.Contains(edge) && !_highlightedEdges.ContainsKey(edge) &&
-                        (visibleBounds.Contains((float)node.X, (float)node.Y) ||
-                         visibleBounds.Contains((float)edge.To.X, (float)edge.To.Y)))
-                    {
-                        using var pen = new Pen(Color.Gray, 1f / (float)_scale);
-                        g.DrawLine(pen, (float)node.X, (float)node.Y, (float)edge.To.X, (float)edge.To.Y);
-                    }
+                    if (node.Id >= edge.To.Id) continue;
+
+                    if (!(visibleBounds.Contains((float)node.X, (float)node.Y)
+                        || visibleBounds.Contains((float)edge.To.X, (float)edge.To.Y)))
+                        continue;
+
+                    g.DrawLine(pen,
+                               (float)node.X, (float)node.Y,
+                               (float)edge.To.X, (float)edge.To.Y);
                 }
             }
 
@@ -173,127 +158,30 @@ namespace MAP_routing.view
             {
                 DrawHighlightedPath(g, currentPath);
                 DrawWalkingPaths(g, currentPath);
-
-                // Add this line to draw the individually highlighted edges
                 DrawSingleHighlightedEdge(g);
             }
 
-            // Draw nodes
             foreach (Node node in _graph)
             {
                 if (visibleBounds.Contains((float)node.X, (float)node.Y))
-                {
                     DrawNode(g, node);
-                }
             }
 
             DrawQueryPoints(g);
         }
 
+
         private void DrawHighlightedPath(Graphics g, PathResult currentPath)
         {
             if (_highlightedPath.Count == 0) return;
 
+            using var pen = new Pen(Color.Blue, 3f / (float)_scale);
             foreach (var edge in _highlightedPath)
             {
-                // Only draw this edge as part of the path if it's not individually highlighted
-                if (_edgeSourceCache.TryGetValue(edge, out Node sourceNode) && !_highlightedEdges.ContainsKey(edge))
+                if(edge.From.Id == -1 || edge.To.Id == -2) continue;
+                if (!_highlightedEdges.ContainsKey(edge))
                 {
-                    using var pen = new Pen(edge.Color, 3f / (float)_scale);
-                    g.DrawLine(pen, (float)sourceNode.X, (float)sourceNode.Y, (float)edge.To.X, (float)edge.To.Y);
-                }
-            }
-        }
-
-        // Fix 1: Update DrawSingleHighlightedEdges to properly draw individual highlighted edges
-        private void DrawSingleHighlightedEdge(Graphics g)
-        {
-            foreach (var entry in _highlightedEdges)
-            {
-                Edge edge = entry.Key;
-                Color color = entry.Value.Item1;
-                string label = entry.Value.Item2;
-
-                if (_edgeSourceCache.TryGetValue(edge, out Node sourceNode))
-                {
-                    // Draw the edge with the specified color and thicker line
-                    using var pen = new Pen(color, 5f / (float)_scale);
-                    g.DrawLine(pen,
-                        (float)sourceNode.X, (float)sourceNode.Y,
-                        (float)edge.To.X, (float)edge.To.Y);
-
-                    // Draw the label if provided
-                    if (!string.IsNullOrEmpty(label))
-                    {
-                        // Calculate the midpoint of the edge
-                        PointF midpoint = new PointF(
-                            (float)((sourceNode.X + edge.To.X) / 2),
-                            (float)((sourceNode.Y + edge.To.Y) / 2)
-                        );
-
-                        // Calculate the direction vector of the edge
-                        float dx = (float)(edge.To.X - sourceNode.X);
-                        float dy = (float)(edge.To.Y - sourceNode.Y);
-
-                        // Calculate the perpendicular offset for the label
-                        float length = (float)Math.Sqrt(dx * dx + dy * dy);
-                        if (length > 0)
-                        {
-                            // Normalize the direction vector
-                            dx /= length;
-                            dy /= length;
-
-                            // Get perpendicular direction (90 degrees to the edge)
-                            float perpX = -dy;
-                            float perpY = dx;
-
-                            // Offset the label position slightly to the side of the edge
-                            float offsetDistance = 10f / (float)_scale;
-                            PointF labelPosition = new PointF(
-                                midpoint.X + perpX * offsetDistance,
-                                midpoint.Y + perpY * offsetDistance
-                            );
-
-                            // Reset coordinate system to screen space for text rendering
-                            Matrix originalTransform = g.Transform;
-                            g.ResetTransform();
-
-                            // Convert label position to screen coordinates
-                            PointF screenPos = new PointF(
-                                _offset.X + labelPosition.X * (float)_scale,
-                                _offset.Y - labelPosition.Y * (float)_scale
-                            );
-
-                            // Set up font and colors
-                            using var font = new Font("Arial", 10f);
-                            using var brush = new SolidBrush(Color.Black);
-
-                            // Create text background for better visibility
-                            SizeF textSize = g.MeasureString(label, font);
-
-                            // Draw background for text (no rotation - keep horizontal)
-                            using var bgBrush = new SolidBrush(Color.White);
-                            g.FillRectangle(bgBrush,
-                                screenPos.X - textSize.Width / 2,
-                                screenPos.Y - textSize.Height / 2,
-                                textSize.Width,
-                                textSize.Height);
-                            g.DrawRectangle(new Pen(Color.Black, 1),
-                                screenPos.X - textSize.Width / 2,
-                                screenPos.Y - textSize.Height / 2,
-                                textSize.Width,
-                                textSize.Height);
-
-                            // Draw text centered (no rotation - keep horizontal)
-                            StringFormat format = new StringFormat();
-                            format.Alignment = StringAlignment.Center;
-                            format.LineAlignment = StringAlignment.Center;
-                            g.DrawString(label, font, brush, screenPos, format);
-
-                            // Restore the original transformation
-                            g.Transform = originalTransform;
-                        }
-                    }
+                    g.DrawLine(pen, (float)edge.From.X, (float)edge.From.Y, (float)edge.To.X, (float)edge.To.Y);
                 }
             }
         }
@@ -303,7 +191,7 @@ namespace MAP_routing.view
             if (currentPath == null || _highlightedPath.Count == 0) return;
 
             using var greenPen = new Pen(Color.Green, 3f / (float)_scale) { DashStyle = DashStyle.Dash };
-            using var redPen = new Pen(Color.Red, 3f / (float)_scale) { DashStyle = DashStyle.Dash };
+            using var redPen = new Pen(Color.Red, (float)(3f / _scale)) { DashStyle = DashStyle.Dash };
 
             if (currentPath.source != null && currentPath.source.Id == -1 && _highlightedPath.Any())
             {
@@ -321,6 +209,88 @@ namespace MAP_routing.view
                 g.DrawLine(redPen,
                     (float)lastEdge.To.X, (float)lastEdge.To.Y,
                     (float)currentPath.dest.X, (float)currentPath.dest.Y);
+            }
+        }
+
+        private void DrawSingleHighlightedEdge(Graphics g)
+        {
+            if (_highlightedEdges.Count == 0) return;
+
+            var entry = _highlightedEdges.First();
+            Edge edge = entry.Key;
+            Color color = entry.Value.Item1;
+            string label = entry.Value.Item2;
+
+            using var pen = new Pen(color, 5f / (float)_scale);
+            g.DrawLine(pen,
+                (float)edge.From.X, (float)edge.From.Y,
+                (float)edge.To.X, (float)edge.To.Y);
+
+            if (!string.IsNullOrEmpty(label))
+            {
+                PointF midpoint = new PointF(
+                    (float)((edge.From.X + edge.To.X) / 2),
+                    (float)((edge.From.Y + edge.To.Y) / 2)
+                );
+
+                float dx = (float)(edge.To.X - edge.From.X);
+                float dy = (float)(edge.To.Y - edge.From.Y);
+
+                float length = (float)Math.Sqrt(dx * dx + dy * dy);
+                if (length > 0)
+                {
+                    dx /= length;
+                    dy /= length;
+
+                    float perpX = -dy;
+                    float perpY = dx;
+
+                    float pointerLength = 160f / (float)_scale;
+                    PointF boxPosition = new PointF(
+                        midpoint.X + perpX * pointerLength,
+                        midpoint.Y + perpY * pointerLength
+                    );
+
+                    using var pointerPen = new Pen(Color.Black, 1f / (float)_scale);
+                    g.DrawLine(pointerPen, midpoint, boxPosition);
+
+                    Matrix originalTransform = g.Transform;
+                    g.ResetTransform();
+
+                    PointF screenMidpoint = new PointF(
+                        _offset.X + midpoint.X * (float)_scale,
+                        _offset.Y - midpoint.Y * (float)_scale
+                    );
+                    PointF screenBoxPos = new PointF(
+                        _offset.X + boxPosition.X * (float)_scale,
+                        _offset.Y - boxPosition.Y * (float)_scale
+                    );
+
+                    using var font = new Font("Arial", 10f);
+                    using var brush = new SolidBrush(Color.White);
+                    SizeF textSize = g.MeasureString(label, font);
+
+                    using var bgBrush = new SolidBrush(Color.Black);
+                    g.FillRectangle(bgBrush,
+                        screenBoxPos.X - textSize.Width / 2,
+                        screenBoxPos.Y - textSize.Height / 2,
+                        textSize.Width,
+                        textSize.Height);
+                    g.DrawRectangle(new Pen(Color.Black, 1),
+                        screenBoxPos.X - textSize.Width / 2,
+                        screenBoxPos.Y - textSize.Height / 2,
+                        textSize.Width,
+                        textSize.Height);
+
+                    StringFormat format = new StringFormat
+                    {
+                        Alignment = StringAlignment.Center,
+                        LineAlignment = StringAlignment.Center
+                    };
+                    g.DrawString(label, font, brush, screenBoxPos, format);
+
+                    g.Transform = originalTransform;
+                }
             }
         }
 

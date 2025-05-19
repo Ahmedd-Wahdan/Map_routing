@@ -21,6 +21,7 @@ namespace MAP_routing.model
 
     public class Edge
     {
+        public Node From { get; set; }
         public Node To { get; set; }
         public double LengthKm { get; set; }
         public double SpeedKmh { get; set; }
@@ -166,8 +167,8 @@ namespace MAP_routing.model
 
                 var node1 = graph[id1];
                 var node2 = graph[id2];
-                Edge edge1 = new Edge { To = node2, LengthKm = lengthKm, SpeedKmh = speedKmh };
-                Edge edge2 = new Edge { To = node1, LengthKm = lengthKm, SpeedKmh = speedKmh };
+                Edge edge1 = new Edge { From = node1, To = node2, LengthKm = lengthKm, SpeedKmh = speedKmh };
+                Edge edge2 = new Edge { From = node2, To = node1, LengthKm = lengthKm, SpeedKmh = speedKmh };
                 // Add bidirectional edges
                 node1.Neighbors.Add(edge1);
                 node2.Neighbors.Add(edge2);

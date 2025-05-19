@@ -178,28 +178,33 @@ namespace MAP_routing
                 return;
             }
 
-            // If we have a path but no edge selected, enable only next button
+            int effectiveEdgeCount = currentPath.Edges.Count;
+            bool hasWalkingEdge = currentPath.source != null && currentPath.source.Id == -1 && currentPath.Edges.Count > 0;
+            if (hasWalkingEdge)
+            {
+                effectiveEdgeCount--;
+            }
+
             if (_currentEdgeIndex == -1)
             {
                 btnPrevEdge.Enabled = false;
-                btnNextEdge.Enabled = currentPath.Edges.Count > 0;
-                lblCurrentEdgeTitle.Text = $"Current Edge: -/{currentPath.Edges.Count}";
+                btnNextEdge.Enabled = effectiveEdgeCount > 0;
+                lblCurrentEdgeTitle.Text = $"Current Edge: -/{effectiveEdgeCount}";
                 return;
             }
 
-            // Both buttons always enabled for cycling navigation, as long as we have edges
             btnPrevEdge.Enabled = true;
             btnNextEdge.Enabled = true;
 
-            // Update edge information
-            if (_currentEdgeIndex >= 0 && _currentEdgeIndex < currentPath.Edges.Count)
+            // Map _currentEdgeIndex to the actual edge index (skip the walking edge)
+            int actualEdgeIndex = hasWalkingEdge ? _currentEdgeIndex + 1 : _currentEdgeIndex;
+            int displayIndex = _currentEdgeIndex + 1;
+
+            if (actualEdgeIndex >= 0 && actualEdgeIndex < currentPath.Edges.Count)
             {
-                Edge currentEdge = currentPath.Edges[_currentEdgeIndex];
-                lblCurrentEdgeTitle.Text = $"Current Edge: {_currentEdgeIndex + 1}/{currentPath.Edges.Count}";
+                lblCurrentEdgeTitle.Text = $"Current Edge: {displayIndex}/{effectiveEdgeCount}";
 
-
-
-                // Highlight the current edge
+                Edge currentEdge = currentPath.Edges[actualEdgeIndex];
                 HighlightCurrentEdge(currentEdge);
             }
         }
@@ -271,9 +276,21 @@ namespace MAP_routing
             PathResult currentPath = GetCurrentPathResult();
             if (currentPath != null && currentPath.Edges != null && currentPath.Edges.Count > 0)
             {
-                if (_currentEdgeIndex >= currentPath.Edges.Count - 1)
+                int effectiveEdgeCount = currentPath.Edges.Count;
+                bool hasWalkingEdge = currentPath.source != null && currentPath.source.Id == -1 && currentPath.Edges.Count > 0;
+                if (hasWalkingEdge)
                 {
-                    _currentEdgeIndex = 0;
+                    effectiveEdgeCount--;
+                }
+
+                // If no edge is currently selected, start at the first non-walking edge
+                if (_currentEdgeIndex == -1)
+                {
+                    _currentEdgeIndex = 0; // This will map to the second edge (index 1) due to hasWalkingEdge logic
+                }
+                else if (_currentEdgeIndex >= effectiveEdgeCount - 1)
+                {
+                    _currentEdgeIndex = 0; // Cycle back to the first non-walking edge
                 }
                 else
                 {

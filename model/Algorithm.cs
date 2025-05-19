@@ -311,7 +311,7 @@ public class Algorithm
         }
 
         swTotal.Stop();
-        TotalTimeWithIO += swTotal.ElapsedMilliseconds;
+        TotalTimeWithIO = swTotal.ElapsedMilliseconds;
 
         return results;
     }
@@ -325,13 +325,14 @@ public class Algorithm
         }
 
         var results = new PathResult[Queries.Count];
-        var swTotal = Stopwatch.StartNew();
 
         // Use the same thread count as processor count or fewer if there are fewer queries
         int degreeOfParallelism = Math.Min(Environment.ProcessorCount, Queries.Count);
 
         // ParallelOptions allows us to control the degree of parallelism
         var options = new ParallelOptions { MaxDegreeOfParallelism = degreeOfParallelism };
+
+        var swTotal = Stopwatch.StartNew();
 
         Parallel.For(0, Queries.Count, options, index =>
         {
@@ -340,7 +341,7 @@ public class Algorithm
         });
 
         swTotal.Stop();
-        TotalTimeWithIO += swTotal.ElapsedMilliseconds;
+        TotalTimeWithIO = swTotal.ElapsedMilliseconds;
 
         return results.ToList();
     }
@@ -389,6 +390,7 @@ public class Algorithm
                     double distToSource = Math.Sqrt(distSquared);
                     var edge = new Edge
                     {
+                        From = sourceSuperNode,
                         To = node,
                         LengthKm = distToSource,
                         SpeedKmh = walkingSpeedKmh,
@@ -412,6 +414,7 @@ public class Algorithm
                     double distToDest = Math.Sqrt(distSquared);
                     var edge = new Edge
                     {
+                        From = node,
                         To = destSuperNode,
                         LengthKm = distToDest,
                         SpeedKmh = walkingSpeedKmh,
@@ -565,7 +568,7 @@ public class Algorithm
 
         return null;
     }
-   
+
     private double Euclidean_Distance_Km(double x1, double y1, double x2, double y2)
     {
         double x = x1 - x2;

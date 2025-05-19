@@ -1,6 +1,4 @@
 using MAP_routing.model;
-using Microsoft.VisualBasic.ApplicationServices;
-using System.IO;
 
 namespace MAP_routing
 {
@@ -123,8 +121,6 @@ namespace MAP_routing
                 this.Cursor = Cursors.Default;
             }
         }
-
-
 
         private void btnExit_Click(object sender, EventArgs e)
         {
