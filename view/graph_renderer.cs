@@ -7,7 +7,6 @@ namespace MAP_routing.view
     {
         private readonly List<Node> _graph;
         private readonly Panel _panel;
-        private readonly List<Edge> _edges;
         private double _scale = 1.0f;
         private PointF _offset = new PointF(0, 0);
         private bool _isPanning = false;
@@ -17,11 +16,10 @@ namespace MAP_routing.view
         private List<Edge> _highlightedPath = new List<Edge>();
         private Dictionary<Edge, Tuple<Color, string>> _highlightedEdges = new Dictionary<Edge, Tuple<Color, string>>();
 
-        public graph_renderer(List<Node> graph, List<Edge> edges, Panel panel)
+        public graph_renderer(List<Node> graph, Panel panel)
         {
             _graph = graph;
             _panel = panel;
-            _edges = edges;
             CenterGraph();
             HookEvents();
         }
@@ -338,15 +336,22 @@ namespace MAP_routing.view
             if (_highlightedNodes.ContainsKey(node.Id))
                 return;
 
-            float radius = 3f;
+            float baseRadius = 3f;
+
+            float dynamicRadius = _scale > 1.0
+                ? baseRadius / (float)Math.Sqrt(_scale)
+                : baseRadius;
+
+            float minRadius = 1.5f;
+            dynamicRadius = Math.Max(dynamicRadius, minRadius);
 
             var rect = new RectangleF(
-                (float)node.X - radius, (float)node.Y - radius,
-                radius * 2, radius * 2
+                (float)node.X - dynamicRadius, (float)node.Y - dynamicRadius,
+                dynamicRadius * 2, dynamicRadius * 2
             );
 
             using var brush = new SolidBrush(node.IsPath ? Color.Red : node.Color);
-            using var pen = new Pen(Color.Black, 1);
+            using var pen = new Pen(Color.Black, 1 / (float)Math.Max(1.0, _scale));
 
             g.FillEllipse(brush, rect);
             g.DrawEllipse(pen, rect);

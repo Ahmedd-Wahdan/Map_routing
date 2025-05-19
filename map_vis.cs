@@ -1,22 +1,21 @@
 ﻿using MAP_routing.view;
 using MAP_routing.model;
+
 namespace MAP_routing
 {
     public partial class map_vis : Form
     {
         private graph_renderer _graphRenderer;
         private List<Node> graph;
-        private List<Edge> edges;
         private List<PathResult> path_results;
 
         private int _currentQueryIndex = -1;
         private int _currentEdgeIndex = -1;
 
-        public map_vis(List<Node> _graph, List<Edge> _edges, List<PathResult> _path_res)
+        public map_vis(List<Node> _graph, List<PathResult> _path_res)
         {
             InitializeComponent();
             graph = _graph;
-            edges = _edges;
             path_results = _path_res;
 
             EnableDoubleBuffering(panel1);
@@ -29,7 +28,7 @@ namespace MAP_routing
             this.Text = "MAP VISUALIZATION";
             this.Icon = SystemIcons.Application;
 
-            _graphRenderer = new graph_renderer(graph, edges, panel1);
+            _graphRenderer = new graph_renderer(graph, panel1);
 
             InitializeQueryControls();
             InitializeEdgeControls();
@@ -109,7 +108,6 @@ namespace MAP_routing
                     {
                         HighlightQueryPath(path);
 
-                        // Reset edge navigation when changing query
                         _currentEdgeIndex = -1;
                         UpdateEdgeNavigation();
                     }
@@ -159,7 +157,6 @@ namespace MAP_routing
             {
                 _graphRenderer.HighlightPath(path, Color.Blue);
 
-                // Enable edge navigation if there are edges in the path
                 btnNextEdge.Enabled = path.Edges.Count > 0;
             }
 
@@ -196,7 +193,6 @@ namespace MAP_routing
             btnPrevEdge.Enabled = true;
             btnNextEdge.Enabled = true;
 
-            // Map _currentEdgeIndex to the actual edge index (skip the walking edge)
             int actualEdgeIndex = hasWalkingEdge ? _currentEdgeIndex + 1 : _currentEdgeIndex;
             int displayIndex = _currentEdgeIndex + 1;
 
@@ -205,34 +201,9 @@ namespace MAP_routing
                 lblCurrentEdgeTitle.Text = $"Current Edge: {displayIndex}/{effectiveEdgeCount}";
 
                 Edge currentEdge = currentPath.Edges[actualEdgeIndex];
-                HighlightCurrentEdge(currentEdge);
+                _graphRenderer.HighlightEdge(currentEdge, Color.Green, currentEdge.LengthKm.ToString("F2") + " km");
+                _graphRenderer.Redraw();
             }
-        }
-
-        private void HighlightCurrentEdge(Edge edge)
-        {
-            // Clear previous highlights and highlight the current path
-            PathResult currentPath = GetCurrentPathResult();
-            HighlightQueryPath(currentPath);
-
-            // Add specific highlighting for the current edge
-            if (edge != null)
-            {
-                // First make sure the edge source is cached
-                foreach (var node in graph)
-                {
-                    foreach (var e in node.Neighbors)
-                    {
-                        if (e == edge)
-                        {
-                            _graphRenderer.HighlightEdge(edge, Color.Green, edge.LengthKm.ToString("F2") + " km");
-                            break;
-                        }
-                    }
-                }
-            }
-
-            _graphRenderer.Redraw();
         }
 
         private void btnPrevQuery_Click(object sender, EventArgs e)
@@ -283,14 +254,13 @@ namespace MAP_routing
                     effectiveEdgeCount--;
                 }
 
-                // If no edge is currently selected, start at the first non-walking edge
                 if (_currentEdgeIndex == -1)
                 {
-                    _currentEdgeIndex = 0; // This will map to the second edge (index 1) due to hasWalkingEdge logic
+                    _currentEdgeIndex = 0;
                 }
                 else if (_currentEdgeIndex >= effectiveEdgeCount - 1)
                 {
-                    _currentEdgeIndex = 0; // Cycle back to the first non-walking edge
+                    _currentEdgeIndex = 0;
                 }
                 else
                 {

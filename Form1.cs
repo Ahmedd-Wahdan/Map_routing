@@ -106,7 +106,7 @@ namespace MAP_routing
                 progressBar.Value = 100;
                 Application.DoEvents();
 
-                map_vis mapForm = new map_vis(map_route.graph, map_route.edges, PRs);
+                map_vis mapForm = new map_vis(map_route.graph, PRs);
                 mapForm.Show();
 
                 lblStatus.Text = "Map visualized successfully!";
