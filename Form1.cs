@@ -20,6 +20,7 @@ namespace MAP_routing
             this.Text = "MAP Routing Visualizer";
             this.Icon = SystemIcons.Application;
             this.MinimumSize = new Size(800, 500);
+            this.WindowState = FormWindowState.Maximized;
         }
 
         private void btnBrowseMap_Click(object sender, EventArgs e)

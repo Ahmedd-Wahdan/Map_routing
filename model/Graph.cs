@@ -15,8 +15,6 @@ namespace MAP_routing.model
         public bool IsPath { get; set; } = false;
         public Color Color { get; set; } = Color.Black;
         public List<Edge> Neighbors { get; set; } = new List<Edge>();
-
-
     }
 
     public class Edge
@@ -25,9 +23,34 @@ namespace MAP_routing.model
         public Node To { get; set; }
         public double LengthKm { get; set; }
         public double SpeedKmh { get; set; }
+        // 
+        public List<double> SpeedKmhList { get; set; } = new List<double>();
         public Color Color { get; set; } = Color.Gray;
         public bool IsPath { get; set; } = false;
-        public double TimeMin => (LengthKm / SpeedKmh) * 60.0;
+
+
+        public double GetTimeMin(double currentTimeMin)
+        {
+            if ( !MapRouting.IsVariableSpeedMode)
+            {
+                if (SpeedKmh <= 0)
+                {
+                    return LengthKm * 60; 
+                }
+                return (LengthKm / SpeedKmh) * 60;
+            }
+
+            int timeSlot = (int)Math.Floor(currentTimeMin / MapRouting.SpeedIntervalMinutes) % SpeedKmhList.Count;
+            double speed = SpeedKmhList[timeSlot];
+            if (speed <= 0)
+            {
+                return (LengthKm / (SpeedKmh > 0 ? SpeedKmh : 1)) * 60;
+            }
+            return (LengthKm / speed) * 60;
+        }
+
+
+        public double TimeMin => GetTimeMin(0);
     }
 
     public class Query
@@ -46,8 +69,6 @@ namespace MAP_routing.model
             DestY = destY;
             Rmeters = rmeters;
         }
-
-
 
         public static List<Query> ReadFromFile(string filePath)
         {
@@ -95,9 +116,7 @@ namespace MAP_routing.model
 
             return Queries;
         }
-
     }
-
 
     public class PathResult
     {
@@ -110,23 +129,37 @@ namespace MAP_routing.model
         public double WalkingDistanceKm { get; set; }
         public double VehicleDistanceKm { get; set; }
     }
+
     public class MapRouting
     {
-
         public List<Node> graph = new List<Node>();
         public List<Edge> edges = new List<Edge>();
-        public double maxSpeedKmh = 0.0; //initial value it gets changed in the readmapfile
+        public double maxSpeedKmh = 0.0;
         public static double total_time_of_IO = 0;
+        public static int total_number_of_edges = 0;
+        public static int total_number_of_nodes = 0;
+
+        // 
+        public static void ResetMode()
+        {
+            IsVariableSpeedMode = false;
+            SpeedCount = 1;
+            SpeedIntervalMinutes = 0;
+        }
+
+        public static bool IsVariableSpeedMode { get; private set; } = false;
+        // 
+        public static int SpeedCount { get; private set; } = 1;
+        // 
+        public static int SpeedIntervalMinutes { get; private set; } = 0;
 
         public MapRouting(string mapFile)
         {
-
             ReadMapFile(mapFile);
             if (graph == null || graph.Count == 0)
             {
                 throw new ArgumentException("Graph cannot be null or empty. (in graph.cs)");
             }
-
         }
 
         private void ReadMapFile(string mapFile)
@@ -142,8 +175,8 @@ namespace MAP_routing.model
             if (graph == null)
             {
                 MessageBox.Show("Graph is null");
-
             }
+
             // Read intersections
             for (int i = 0; i < N; i++)
             {
@@ -151,9 +184,21 @@ namespace MAP_routing.model
                 graph.Add(new Node { Id = (int)parts[0], X = parts[1], Y = parts[2] });
             }
 
-            // Read number of roads
-            int M = int.Parse(lines[lineIndex++]);
+            // 
+            // Read roads info
+            var roadInfoParts = lines[lineIndex++].Split(' ').Select(int.Parse).ToArray();
+            int M = roadInfoParts[0];
 
+            // 
+            // Check if we're in variable speed mode
+            if (roadInfoParts.Length >= 3)
+            {
+                IsVariableSpeedMode = true;
+                SpeedCount = roadInfoParts[1];
+                SpeedIntervalMinutes = roadInfoParts[2];
+            }
+
+            // 
             // Read roads
             maxSpeedKmh = 0;
             for (int i = 0; i < M; i++)
@@ -162,25 +207,58 @@ namespace MAP_routing.model
                 int id1 = (int)parts[0];
                 int id2 = (int)parts[1];
                 double lengthKm = parts[2];
-                double speedKmh = parts[3];
-                maxSpeedKmh = Math.Max(maxSpeedKmh, speedKmh);
 
                 var node1 = graph[id1];
                 var node2 = graph[id2];
-                Edge edge1 = new Edge { From = node1, To = node2, LengthKm = lengthKm, SpeedKmh = speedKmh };
-                Edge edge2 = new Edge { From = node2, To = node1, LengthKm = lengthKm, SpeedKmh = speedKmh };
+
+                Edge edge1, edge2;
+
+                if (IsVariableSpeedMode)
+                {
+                    edge1 = new Edge
+                    {
+                        From = node1,
+                        To = node2,
+                        LengthKm = lengthKm
+                    };
+
+                    edge2 = new Edge
+                    {
+                        From = node2,
+                        To = node1,
+                        LengthKm = lengthKm
+                    };
+
+                    for (int j = 0; j < SpeedCount; j++)
+                    {
+                        double speed = parts[3 + j];
+                        edge1.SpeedKmhList.Add(speed);
+                        edge2.SpeedKmhList.Add(speed);
+                        maxSpeedKmh = Math.Max(maxSpeedKmh, speed);
+                    }
+
+                    edge1.SpeedKmh = edge1.SpeedKmhList[0];
+                    edge2.SpeedKmh = edge2.SpeedKmhList[0];
+                }
+                else
+                {
+                    double speedKmh = parts[3];
+                    edge1 = new Edge { From = node1, To = node2, LengthKm = lengthKm, SpeedKmh = speedKmh };
+                    edge2 = new Edge { From = node2, To = node1, LengthKm = lengthKm, SpeedKmh = speedKmh };
+                    maxSpeedKmh = Math.Max(maxSpeedKmh, speedKmh);
+                }
+
                 // Add bidirectional edges
                 node1.Neighbors.Add(edge1);
                 node2.Neighbors.Add(edge2);
                 edges.Add(edge1);
                 edges.Add(edge2);
-
             }
+
             IO_stopwatch.Stop();
             total_time_of_IO += IO_stopwatch.ElapsedMilliseconds;
+            total_number_of_nodes = N;
+            total_number_of_edges = M;
         }
-
-
     }
-
 }

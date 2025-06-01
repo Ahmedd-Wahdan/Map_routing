@@ -57,6 +57,23 @@ namespace MAP_routing
             btnPrevQuery.Enabled = false;
             btnSaveAllResults.Enabled = path_results != null && path_results.Count > 0;
 
+            // Display graph metrics with separate labels for prefix and value
+            int totalNodes = MapRouting.total_number_of_nodes ;//graph?.Count ?? 0;
+            int totalEdges = MapRouting.total_number_of_edges;
+            int totalProcessingTime = (int)Algorithm.TotalTimeWithout_IO;
+
+            lblNodes.Text = "Nodes: ";
+            lblNodesValue.Text = $"{totalNodes}";
+            lblNodesValue.ForeColor = Color.RoyalBlue;
+
+            lblEdges.Text = "Edges: ";
+            lblEdgesValue.Text = $"{totalEdges}";
+            lblEdgesValue.ForeColor = Color.RoyalBlue;
+
+            lblProcessingTime.Text = "Total Processing Time: ";
+            lblProcessingTimeValue.Text = $"{totalProcessingTime} ms";
+            lblProcessingTimeValue.ForeColor = Color.RoyalBlue;
+
             if (path_results != null && path_results.Count > 0)
             {
                 lblQueryCount.Text = $"Queries found: {path_results.Count}";
@@ -80,7 +97,6 @@ namespace MAP_routing
             {
                 btnNextEdge.Enabled = true;
             }
-
         }
 
         private void DisplayCurrentQuery()
@@ -319,13 +335,13 @@ namespace MAP_routing
 
                                 writer.WriteLine();
                             }
-                            double total_time = Algorithm.TotalTimeWithIO + MapRouting.total_time_of_IO;
+                            double total_time = Algorithm.TotalTimeWithout_IO + MapRouting.total_time_of_IO;
 
-                            writer.WriteLine($"{(int)Algorithm.TotalTimeWithIO} ms");
+                            writer.WriteLine($"{(int)Algorithm.TotalTimeWithout_IO} ms");
                             writer.WriteLine();
                             writer.WriteLine($"{(int)total_time} ms");
                         }
-                        Algorithm.TotalTimeWithIO = MapRouting.total_time_of_IO = 0;
+                        Algorithm.TotalTimeWithout_IO = MapRouting.total_time_of_IO = 0;
                         MessageBox.Show("Results saved successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
                     catch (Exception ex)
@@ -335,7 +351,5 @@ namespace MAP_routing
                 }
             }
         }
-
-
     }
 }

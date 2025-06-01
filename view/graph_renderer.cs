@@ -249,9 +249,6 @@ namespace MAP_routing.view
                         midpoint.Y + perpY * pointerLength
                     );
 
-                    using var pointerPen = new Pen(Color.Black, 1f / (float)_scale);
-                    g.DrawLine(pointerPen, midpoint, boxPosition);
-
                     Matrix originalTransform = g.Transform;
                     g.ResetTransform();
 
@@ -266,26 +263,49 @@ namespace MAP_routing.view
 
                     using var font = new Font("Arial", 10f);
                     using var brush = new SolidBrush(Color.White);
-                    SizeF textSize = g.MeasureString(label, font);
+
+                    // Define the two lines of text
+                    string line1 = label;
+
+                    // Measure text sizes
+                    SizeF textSize1 = g.MeasureString(line1, font);
+
+                    // Calculate box dimensions
+                    float maxWidth =(textSize1.Width);
+                    float totalHeight = textSize1.Height ;
+
+                    // Position the box so the bottom aligns with the pointer
+                    float boxTop = screenBoxPos.Y - totalHeight;
 
                     using var bgBrush = new SolidBrush(Color.Black);
                     g.FillRectangle(bgBrush,
-                        screenBoxPos.X - textSize.Width / 2,
-                        screenBoxPos.Y - textSize.Height / 2,
-                        textSize.Width,
-                        textSize.Height);
+                        screenBoxPos.X - maxWidth / 2,
+                        boxTop,
+                        maxWidth,
+                        totalHeight);
                     g.DrawRectangle(new Pen(Color.Black, 1),
-                        screenBoxPos.X - textSize.Width / 2,
-                        screenBoxPos.Y - textSize.Height / 2,
-                        textSize.Width,
-                        textSize.Height);
+                        screenBoxPos.X - maxWidth / 2,
+                        boxTop,
+                        maxWidth,
+                        totalHeight);
 
                     StringFormat format = new StringFormat
                     {
                         Alignment = StringAlignment.Center,
                         LineAlignment = StringAlignment.Center
                     };
-                    g.DrawString(label, font, brush, screenBoxPos, format);
+
+                    // Draw first line
+                    g.DrawString(line1, font, brush,
+                        new PointF(screenBoxPos.X, boxTop + textSize1.Height / 2), format);
+
+                    // Draw second line
+                   
+
+                    // Draw pointer to the bottom center of the box
+                    PointF screenBoxBottom = new PointF(screenBoxPos.X, boxTop + totalHeight);
+                    using var pointerPen = new Pen(Color.Black, 1);
+                    g.DrawLine(pointerPen, screenMidpoint, screenBoxBottom);
 
                     g.Transform = originalTransform;
                 }

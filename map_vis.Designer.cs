@@ -6,6 +6,7 @@
         /// Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
+
         /// <summary>
         /// Clean up any resources being used.
         /// </summary>
@@ -18,6 +19,7 @@
             }
             base.Dispose(disposing);
         }
+
         #region Windows Form Designer generated code
         /// <summary>
         /// Required method for Designer support - do not modify
@@ -26,6 +28,12 @@
         private void InitializeComponent()
         {
             panel1 = new Panel();
+            lblNodes = new Label();
+            lblNodesValue = new Label();
+            lblEdges = new Label();
+            lblEdgesValue = new Label();
+            lblProcessingTime = new Label();
+            lblProcessingTimeValue = new Label();
             splitContainer1 = new SplitContainer();
             pnlQueryControls = new Panel();
             lblCurrentEdgeTitle = new Label();
@@ -58,6 +66,69 @@
             panel1.Size = new Size(857, 909);
             panel1.TabIndex = 0;
             // 
+            // lblNodes
+            // 
+            lblNodes.AutoSize = true;
+            lblNodes.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point);
+            lblNodes.Location = new Point(18, 699);
+            lblNodes.Name = "lblNodes";
+            lblNodes.Size = new Size(70, 23);
+            lblNodes.TabIndex = 16;
+            lblNodes.Text = "Nodes: ";
+            // 
+            // lblNodesValue
+            // 
+            lblNodesValue.AutoSize = true;
+            lblNodesValue.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point);
+            lblNodesValue.ForeColor = Color.RoyalBlue;
+            lblNodesValue.Location = new Point(83, 699);
+            lblNodesValue.Name = "lblNodesValue";
+            lblNodesValue.Size = new Size(20, 23);
+            lblNodesValue.TabIndex = 19;
+            lblNodesValue.Text = "0";
+            // 
+            // lblEdges
+            // 
+            lblEdges.AutoSize = true;
+            lblEdges.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point);
+            lblEdges.Location = new Point(168, 699);
+            lblEdges.Name = "lblEdges";
+            lblEdges.Size = new Size(67, 23);
+            lblEdges.TabIndex = 17;
+            lblEdges.Text = "Edges: ";
+            // 
+            // lblEdgesValue
+            // 
+            lblEdgesValue.AutoSize = true;
+            lblEdgesValue.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point);
+            lblEdgesValue.ForeColor = Color.RoyalBlue;
+            lblEdgesValue.Location = new Point(233, 699);
+            lblEdgesValue.Name = "lblEdgesValue";
+            lblEdgesValue.Size = new Size(20, 23);
+            lblEdgesValue.TabIndex = 20;
+            lblEdgesValue.Text = "0";
+            // 
+            // lblProcessingTime
+            // 
+            lblProcessingTime.AutoSize = true;
+            lblProcessingTime.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point);
+            lblProcessingTime.Location = new Point(18, 652);
+            lblProcessingTime.Name = "lblProcessingTime";
+            lblProcessingTime.Size = new Size(193, 23);
+            lblProcessingTime.TabIndex = 18;
+            lblProcessingTime.Text = "Total Processing Time: ";
+            // 
+            // lblProcessingTimeValue
+            // 
+            lblProcessingTimeValue.AutoSize = true;
+            lblProcessingTimeValue.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point);
+            lblProcessingTimeValue.ForeColor = Color.RoyalBlue;
+            lblProcessingTimeValue.Location = new Point(210, 652);
+            lblProcessingTimeValue.Name = "lblProcessingTimeValue";
+            lblProcessingTimeValue.Size = new Size(48, 23);
+            lblProcessingTimeValue.TabIndex = 21;
+            lblProcessingTimeValue.Text = "0 ms";
+            // 
             // splitContainer1
             // 
             splitContainer1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
@@ -83,10 +154,16 @@
             // 
             pnlQueryControls.BackColor = Color.FromArgb(240, 245, 255);
             pnlQueryControls.BorderStyle = BorderStyle.FixedSingle;
+            pnlQueryControls.Controls.Add(lblEdges);
+            pnlQueryControls.Controls.Add(lblEdgesValue);
+            pnlQueryControls.Controls.Add(lblNodes);
             pnlQueryControls.Controls.Add(lblCurrentEdgeTitle);
             pnlQueryControls.Controls.Add(btnPrevEdge);
+            pnlQueryControls.Controls.Add(lblNodesValue);
             pnlQueryControls.Controls.Add(btnNextEdge);
             pnlQueryControls.Controls.Add(lblPathMetrics);
+            pnlQueryControls.Controls.Add(lblProcessingTime);
+            pnlQueryControls.Controls.Add(lblProcessingTimeValue);
             pnlQueryControls.Controls.Add(lblDistance);
             pnlQueryControls.Controls.Add(lblQueryInfo);
             pnlQueryControls.Controls.Add(lblCurrentQuery);
@@ -107,7 +184,7 @@
             lblCurrentEdgeTitle.AutoSize = true;
             lblCurrentEdgeTitle.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point);
             lblCurrentEdgeTitle.ForeColor = Color.RoyalBlue;
-            lblCurrentEdgeTitle.Location = new Point(18, 591);
+            lblCurrentEdgeTitle.Location = new Point(18, 521);
             lblCurrentEdgeTitle.Name = "lblCurrentEdgeTitle";
             lblCurrentEdgeTitle.Size = new Size(133, 23);
             lblCurrentEdgeTitle.TabIndex = 15;
@@ -120,7 +197,7 @@
             btnPrevEdge.FlatStyle = FlatStyle.Flat;
             btnPrevEdge.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point);
             btnPrevEdge.ForeColor = Color.White;
-            btnPrevEdge.Location = new Point(18, 631);
+            btnPrevEdge.Location = new Point(18, 561);
             btnPrevEdge.Margin = new Padding(3, 4, 3, 4);
             btnPrevEdge.Name = "btnPrevEdge";
             btnPrevEdge.Size = new Size(131, 40);
@@ -136,7 +213,7 @@
             btnNextEdge.FlatStyle = FlatStyle.Flat;
             btnNextEdge.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point);
             btnNextEdge.ForeColor = Color.White;
-            btnNextEdge.Location = new Point(169, 631);
+            btnNextEdge.Location = new Point(169, 561);
             btnNextEdge.Margin = new Padding(3, 4, 3, 4);
             btnNextEdge.Name = "btnNextEdge";
             btnNextEdge.Size = new Size(131, 40);
@@ -151,9 +228,9 @@
             lblPathMetrics.BackColor = Color.White;
             lblPathMetrics.BorderStyle = BorderStyle.FixedSingle;
             lblPathMetrics.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
-            lblPathMetrics.Location = new Point(18, 475);
+            lblPathMetrics.Location = new Point(18, 405);
             lblPathMetrics.Name = "lblPathMetrics";
-            lblPathMetrics.Padding = new Padding(10, 10, 10, 10);
+            lblPathMetrics.Padding = new Padding(10);
             lblPathMetrics.Size = new Size(282, 106);
             lblPathMetrics.TabIndex = 12;
             // 
@@ -161,7 +238,7 @@
             // 
             lblDistance.AutoSize = true;
             lblDistance.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point);
-            lblDistance.Location = new Point(18, 430);
+            lblDistance.Location = new Point(18, 360);
             lblDistance.Name = "lblDistance";
             lblDistance.Size = new Size(202, 23);
             lblDistance.TabIndex = 11;
@@ -173,9 +250,9 @@
             lblQueryInfo.BackColor = Color.White;
             lblQueryInfo.BorderStyle = BorderStyle.FixedSingle;
             lblQueryInfo.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
-            lblQueryInfo.Location = new Point(18, 229);
+            lblQueryInfo.Location = new Point(18, 159);
             lblQueryInfo.Name = "lblQueryInfo";
-            lblQueryInfo.Padding = new Padding(10, 10, 10, 10);
+            lblQueryInfo.Padding = new Padding(10);
             lblQueryInfo.Size = new Size(282, 159);
             lblQueryInfo.TabIndex = 10;
             lblQueryInfo.Text = "No query selected";
@@ -185,7 +262,7 @@
             lblCurrentQuery.AutoSize = true;
             lblCurrentQuery.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point);
             lblCurrentQuery.ForeColor = Color.RoyalBlue;
-            lblCurrentQuery.Location = new Point(18, 189);
+            lblCurrentQuery.Location = new Point(18, 119);
             lblCurrentQuery.Name = "lblCurrentQuery";
             lblCurrentQuery.Size = new Size(142, 23);
             lblCurrentQuery.TabIndex = 9;
@@ -215,7 +292,7 @@
             btnNextQuery.FlatStyle = FlatStyle.Flat;
             btnNextQuery.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point);
             btnNextQuery.ForeColor = Color.White;
-            btnNextQuery.Location = new Point(169, 133);
+            btnNextQuery.Location = new Point(169, 83);
             btnNextQuery.Margin = new Padding(3, 4, 3, 4);
             btnNextQuery.Name = "btnNextQuery";
             btnNextQuery.Size = new Size(131, 40);
@@ -231,7 +308,7 @@
             btnPrevQuery.FlatStyle = FlatStyle.Flat;
             btnPrevQuery.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point);
             btnPrevQuery.ForeColor = Color.White;
-            btnPrevQuery.Location = new Point(18, 133);
+            btnPrevQuery.Location = new Point(18, 83);
             btnPrevQuery.Margin = new Padding(3, 4, 3, 4);
             btnPrevQuery.Name = "btnPrevQuery";
             btnPrevQuery.Size = new Size(131, 40);
@@ -244,7 +321,7 @@
             // 
             lblQueryCount.AutoSize = true;
             lblQueryCount.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point);
-            lblQueryCount.Location = new Point(18, 93);
+            lblQueryCount.Location = new Point(18, 43);
             lblQueryCount.Name = "lblQueryCount";
             lblQueryCount.Size = new Size(133, 23);
             lblQueryCount.TabIndex = 3;
@@ -255,7 +332,7 @@
             lblQuerySectionTitle.AutoSize = true;
             lblQuerySectionTitle.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point);
             lblQuerySectionTitle.ForeColor = Color.FromArgb(50, 50, 80);
-            lblQuerySectionTitle.Location = new Point(18, 32);
+            lblQuerySectionTitle.Location = new Point(18, 10);
             lblQuerySectionTitle.Name = "lblQuerySectionTitle";
             lblQuerySectionTitle.Size = new Size(217, 32);
             lblQuerySectionTitle.TabIndex = 0;
@@ -296,5 +373,11 @@
         private Button btnNextEdge;
         private Button btnPrevEdge;
         private Label lblCurrentEdgeTitle;
+        private Label lblNodes;
+        private Label lblEdges;
+        private Label lblProcessingTime;
+        private Label lblNodesValue;
+        private Label lblEdgesValue;
+        private Label lblProcessingTimeValue;
     }
 }
